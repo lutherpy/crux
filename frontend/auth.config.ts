@@ -22,7 +22,6 @@ const authConfig = {
           id: '1',
           name: 'John',
           email: credentials?.email as string
-          //email: credentials?.email as string
         };
         if (user) {
           // Any object returned will be saved in `user` property of the JWT
@@ -37,7 +36,7 @@ const authConfig = {
     })
   ],
   pages: {
-    signIn: '/login' //signin page
+    signIn: '/' //sigin page
   }
 } satisfies NextAuthConfig;
 

@@ -1,8 +1,46 @@
-import { NextAuthConfig } from 'next-auth';
+import { NextAuthConfig, User } from 'next-auth';
 import CredentialProvider from 'next-auth/providers/credentials';
 import GithubProvider from 'next-auth/providers/github';
+import axios from 'axios';
 
-const authConfig = {
+// Obtém as variáveis de ambiente
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL_API ?? '';
+const basicAuthUser = process.env.NEXT_PUBLIC_BASIC_AUTH_USER ?? '';
+const basicAuthPass = process.env.NEXT_PUBLIC_BASIC_AUTH_PASS ?? '';
+
+// Cria o header de autorização com as variáveis de ambiente
+const authHeader = 'Basic ' + Buffer.from(`${basicAuthUser}:${basicAuthPass}`).toString('base64');
+
+const authenticateUser = async (username: string, password: string): Promise<User | null> => {
+  try {
+    const response = await axios.post(
+      `${backendUrl}/login`,
+      { username, password },
+      {
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (response.data && response.data.user && response.data.token) {
+      return {
+        id: response.data.user.id,
+        name: response.data.user.username,
+        email: response.data.user.email,
+        token: response.data.token
+      };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Erro ao autenticar:', error);
+    return null;
+  }
+};
+
+const authConfig: NextAuthConfig = {
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID ?? '',
@@ -10,34 +48,55 @@ const authConfig = {
     }),
     CredentialProvider({
       credentials: {
-        email: {
-          type: 'email'
+        username: {
+          label: 'Username',
+          type: 'text'
         },
         password: {
+          label: 'Password',
           type: 'password'
         }
       },
-      async authorize(credentials, req) {
-        const user = {
-          id: '1',
-          name: 'John',
-          email: credentials?.email as string
-        };
+      async authorize(credentials) {
+        if (!credentials?.username || !credentials?.password) {
+          return null;
+        }
+
+        const user = await authenticateUser(credentials.username as string, credentials.password as string);
+
         if (user) {
-          // Any object returned will be saved in `user` property of the JWT
           return user;
         } else {
-          // If you return null then an error will be displayed advising the user to check their details.
           return null;
-
-          // You can also Reject this callback with an Error thus the user will be sent to the error page with the error message as a query parameter
         }
       }
     })
   ],
   pages: {
-    signIn: '/login' //sigin page
+    signIn: '/' // Página de login personalizada
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.token = user.token;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user = {
+          id: token.id as string,
+          name: token.name as string,
+          email: token.email as string
+        };
+        session.accessToken = token.token as string;
+      }
+      return session;
+    }
   }
-} satisfies NextAuthConfig;
+};
 
 export default authConfig;

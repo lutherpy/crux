@@ -1,16 +1,17 @@
-import Providers from '@/components/layout/providers';
-import { Toaster } from '@/components/ui/toaster';
-import '@uploadthing/react/styles.css';
-import type { Metadata } from 'next';
-import NextTopLoader from 'nextjs-toploader';
+// `RootLayout.tsx`
+import { redirect } from 'next/navigation';
 import { Inter } from 'next/font/google';
-import './globals.css';
+import Providers from '@/components/layout/providers';
 import { auth } from '@/auth';
+import '@uploadthing/react/styles.css';
+import './globals.css';
+import NextTopLoader from 'nextjs-toploader';
+import type { Metadata } from 'next';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn',
+  title: 'CRUX',
   description: 'Basic dashboard with Next.js and Shadcn'
 };
 
@@ -19,18 +20,17 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Verificar a sessão no lado do servidor
   const session = await auth();
+
   return (
     <html lang="en">
       <body
-        className={`${inter.className} overflow-hidden `}
+        className={`${inter.className} overflow-hidden`}
         suppressHydrationWarning={true}
       >
         <NextTopLoader showSpinner={false} />
-        <Providers session={session}>
-          <Toaster />
-          {children}
-        </Providers>
+        <Providers session={session}>{children}</Providers>
       </body>
     </html>
   );

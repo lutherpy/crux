@@ -10,6 +10,7 @@ const app = express();
 // Rotas
 const userRoutes = require("./app/routes/user/UsersRoutes");
 const profileRoutes = require("./app/routes/profile/ProfileRoutes");
+const loginRoutes = require("./app/routes/login/LoginRoutes");
 
 // Permitir o acesso de diferentes servidores
 app.use(cors());
@@ -36,6 +37,7 @@ app.use(auth);
 // Usar as rotas
 app.use("/api/users", userRoutes);
 app.use("/api/profiles", profileRoutes);
+app.use("/api/login", loginRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

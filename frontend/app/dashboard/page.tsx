@@ -36,7 +36,7 @@ export default function page() {
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
+              <Card className=" transform cursor-pointer transition-transform hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Total Revenue
@@ -61,7 +61,7 @@ export default function page() {
                   </p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className=" transform cursor-pointer transition-transform hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Subscriptions
@@ -88,7 +88,7 @@ export default function page() {
                   </p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className=" transform cursor-pointer transition-transform hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Sales</CardTitle>
                   <svg
@@ -112,7 +112,7 @@ export default function page() {
                   </p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className=" transform cursor-pointer transition-transform hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Active Now

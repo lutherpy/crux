@@ -60,9 +60,11 @@ const authConfig: NextAuthConfig = {
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
           return null;
+          
         }
 
         const user = await authenticateUser(credentials.username as string, credentials.password as string);
+
         if (user) {
           return user;
         } else {

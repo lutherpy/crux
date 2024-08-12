@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation';
 import { Inter } from 'next/font/google';
 import Providers from '@/components/layout/providers';
-import { auth } from '@/auth';
+import { auth } from '@/auth/auth';
 import '@uploadthing/react/styles.css';
 import './globals.css';
 import NextTopLoader from 'nextjs-toploader';

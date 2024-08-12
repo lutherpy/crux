@@ -1,18 +1,25 @@
 import { Metadata } from 'next';
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
+import router, { useRouter } from 'next/router';
 import Link from 'next/link';
 import UserAuthForm from '@/components/forms/user-auth-form';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { checkIsAuthenticated } from '@/auth/checkIsAuthenticated';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Authentication',
   description: 'Authentication forms built using the components.'
 };
 
-export default function AuthenticationPage() {
+export default async function AuthenticationPage() {
+  const isAuthenticated = await checkIsAuthenticated();
+
+  if (isAuthenticated) {
+    redirect('/dashboard');
+  }
   return (
     <div className="relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <Link

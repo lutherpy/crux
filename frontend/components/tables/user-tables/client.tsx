@@ -7,7 +7,7 @@ import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { UserService } from '@/service/UserService';
 import { User } from '@/constants/data';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react'; // Importa o ícone de carregamento
 import { useRouter } from 'next/navigation';
 import { columns } from './columns';
 import { toast } from '@/components/ui/use-toast';
@@ -18,6 +18,7 @@ interface UserClientProps {
 
 export const UserClient: React.FC<UserClientProps> = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -58,7 +59,18 @@ export const UserClient: React.FC<UserClientProps> = () => {
   };
 
   const handleEditUser = async (userId: number) => {
-    router.push(`/dashboard/user/edit/${userId}`);
+    setLoading(true);
+    router.push(`/dashboard/user/${userId}/edit`);
+    setLoading(false);
+  };
+
+  const handleAddNewUser = async () => {
+    setLoading(true);
+    // Redireciona com um pequeno atraso para mostrar o carregamento
+    setTimeout(() => {
+      router.push(`/dashboard/user/new`);
+      setLoading(false);
+    }, 300); // Ajuste o atraso conforme necessário
   };
 
   return (
@@ -70,9 +82,15 @@ export const UserClient: React.FC<UserClientProps> = () => {
         />
         <Button
           className="text-xs md:text-sm"
-          onClick={() => router.push(`/dashboard/user/new`)}
+          onClick={handleAddNewUser}
+          disabled={loading}
         >
-          <Plus className="mr-2 h-4 w-4" /> Add New
+          {loading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Plus className="mr-2 h-4 w-4" />
+          )}
+          {loading ? 'Adding...' : 'Add New'}
         </Button>
       </div>
       <Separator />

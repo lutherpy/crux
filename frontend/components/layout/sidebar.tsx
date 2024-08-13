@@ -1,11 +1,14 @@
 'use client';
-import React, { useState } from 'react';
+
+import React from 'react';
 import { DashboardNav } from '@/components/dashboard-nav';
 import { navItems } from '@/components/layout/menu';
 import { cn } from '@/lib/utils';
 import { ChevronLeft } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
 import Link from 'next/link';
+import { signOut } from 'next-auth/react';
+import { Button } from '../ui/button';
 
 type SidebarProps = {
   className?: string;
@@ -18,10 +21,17 @@ export default function Sidebar({ className }: SidebarProps) {
     toggle();
   };
 
+  const handleLogout = () => {
+    signOut({
+      redirect: true,
+      callbackUrl: '/' // Redireciona para a página inicial após o logout
+    });
+  };
+
   return (
     <aside
       className={cn(
-        `relative  hidden h-screen flex-none border-r bg-card transition-[width] duration-500 md:block`,
+        `relative hidden h-screen flex-none border-r bg-card transition-[width] duration-500 md:block`,
         !isMinimized ? 'w-72' : 'w-[72px]',
         className
       )}
@@ -44,7 +54,7 @@ export default function Sidebar({ className }: SidebarProps) {
       </div>
       <ChevronLeft
         className={cn(
-          'absolute -right-3 top-10 z-50  cursor-pointer rounded-full border bg-background text-3xl text-foreground',
+          'absolute -right-3 top-10 z-50 cursor-pointer rounded-full border bg-background text-3xl text-foreground',
           isMinimized && 'rotate-180'
         )}
         onClick={handleToggle}
@@ -54,6 +64,14 @@ export default function Sidebar({ className }: SidebarProps) {
           <div className="mt-3 space-y-1">
             <DashboardNav items={navItems} />
           </div>
+        </div>
+        <div className="absolute bottom-4 w-full px-3">
+          <Button
+            onClick={handleLogout}
+            className="w-full rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+          >
+            Logout
+          </Button>
         </div>
       </div>
     </aside>

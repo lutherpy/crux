@@ -50,8 +50,8 @@ async function postUsers(req, res) {
 
     // Inserir o novo utilizador
     query = `
-      INSERT INTO Utilizador (username, name, email, password, profile_id)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO Utilizador (username, name, email, password, profile_id, createdAt, updatedAt)
+      VALUES ($1, $2, $3, $4, $5, DEFAULT, DEFAULT)
     `;
     await client.query(query, [
       username,
@@ -74,7 +74,7 @@ async function getUsers(req, res) {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      "SELECT a.id, name, username, email, b.descricao FROM Utilizador a JOIN Profile b ON a.profile_id=b.id ORDER BY id DESC"
+      "SELECT a.id, name, username, email, b.descricao, a.createdAt, a.updatedAt FROM Utilizador a JOIN Profile b ON a.profile_id=b.id ORDER BY id DESC"
     );
     client.release();
     res.status(200).json(result.rows);
@@ -91,7 +91,7 @@ async function getUserById(req, res) {
   try {
     const client = await pool.connect();
     const query =
-      "SELECT id, name, username, email FROM Utilizador WHERE id = $1";
+      "SELECT id, name, username, email, createdAt, updatedAt FROM Utilizador WHERE id = $1";
     const result = await client.query(query, [userId]);
 
     client.release();
@@ -152,47 +152,24 @@ async function updateUser(req, res) {
       return res.status(400).json({ error: "O perfil não existe" });
     }
 
-    // Atualizar ou inserir o utilizador
-    if (id) {
-      // Atualizar o utilizador
-      query = `
-        UPDATE Utilizador
-        SET username = $1,
-            name = $2,
-            email = $3,
-            profile_id = $4
-        WHERE id = $5
-      `;
-      result = await client.query(query, [
-        username,
-        name,
-        email,
-        profile_id,
-        id,
-      ]);
+    // Atualizar o utilizador
+    query = `
+      UPDATE Utilizador
+      SET username = $1,
+          name = $2,
+          email = $3,
+          profile_id = $4,
+          updatedAt = DEFAULT
+      WHERE id = $5
+    `;
+    result = await client.query(query, [username, name, email, profile_id, id]);
 
-      client.release();
+    client.release();
 
-      if (result.rowCount > 0) {
-        res.status(200).send("Utilizador atualizado com sucesso.");
-      } else {
-        res.status(404).send("Utilizador não encontrado.");
-      }
+    if (result.rowCount > 0) {
+      res.status(200).send("Utilizador atualizado com sucesso.");
     } else {
-      // Inserir um novo utilizador
-      query = `
-        INSERT INTO Utilizador (username, name, email, profile_id)
-        VALUES ($1, $2, $3, $4)
-      `;
-      result = await client.query(query, [username, name, email, profile_id]);
-
-      client.release();
-
-      if (result.rowCount > 0) {
-        res.status(201).send("Utilizador inserido com sucesso.");
-      } else {
-        res.status(500).send("Erro ao inserir utilizador.");
-      }
+      res.status(404).send("Utilizador não encontrado.");
     }
   } catch (error) {
     console.error("Erro ao atualizar Utilizador:", error);

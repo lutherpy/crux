@@ -82,6 +82,11 @@ const authConfig: NextAuthConfig = {
   pages: {
     signIn: '/'
   },
+  session: {
+    maxAge: 60 * 60, // Tempo de expiração da sessão em segundos (1 minuto)
+    updateAge: 30* 60 , // Tempo em segundos para atualizar a sessão
+    
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -100,11 +105,10 @@ const authConfig: NextAuthConfig = {
         email: token.email as string,
         username: token.username as string
       };
-      (session as any).accessToken = token.accessToken as string; // Agora você pode definir accessToken
+      (session as any).accessToken = token.accessToken as string;
       return session;
     },
     authorized: async ({ auth }) => {
-      // Logged in users are authenticated, otherwise redirect to login page
       return !!auth;
     }
   }

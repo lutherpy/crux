@@ -37,6 +37,10 @@ export const columns = ({
     header: 'Username'
   },
   {
+    accessorKey: 'descricao',
+    header: 'Perfil'
+  },
+  {
     id: 'actions',
     header: 'Actions',
     cell: ({ row }) => {

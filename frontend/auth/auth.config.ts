@@ -29,7 +29,7 @@ const authenticateUser = async (username: string, password: string): Promise<Use
         id: response.data.user.id,
         name: response.data.user.username,
         email: response.data.user.email,
-        token: response.data.token
+
       };
     } else {
       return null;
@@ -72,7 +72,8 @@ const authConfig: NextAuthConfig = {
     })
   ],
   pages: {
-    signIn: '/' // Página de login personalizada
+    signIn: '/',
+    signOut: '/teste' // Página de login personalizada
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -80,7 +81,7 @@ const authConfig: NextAuthConfig = {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
-        token.token = user.token;
+
       }
       return token;
     },

@@ -1,30 +1,18 @@
 'use client';
 
-import {
-  Bar,
-  BarChart,
-  Label,
-  Rectangle,
-  ReferenceLine,
-  XAxis
-} from 'recharts';
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
-} from '@/components/ui/chart';
 import PageContainer from '@/components/layout/page-container';
 import CardLp from '@/components/custom/card-lp';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
 export default function Component() {
   return (
     <PageContainer scrollable={true}>
@@ -33,6 +21,22 @@ export default function Component() {
         <div className="mt-5">
           <CardLp />
         </div>
+        <AlertDialog>
+          <AlertDialogTrigger>Open</AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your
+                account and remove your data from our servers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PageContainer>
   );

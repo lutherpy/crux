@@ -25,7 +25,7 @@ async function loginUser(req, res) {
 
     // Verificar se o usuário existe
     const query =
-      "SELECT id, username, pass, email FROM Utilizador WHERE username = $1";
+      "SELECT id, username, password, name, email FROM Utilizador WHERE username = $1";
     const result = await client.query(query, [username]);
 
     if (result.rows.length === 0) {
@@ -36,7 +36,7 @@ async function loginUser(req, res) {
     const user = result.rows[0];
 
     // Verificar se a senha é válida
-    const isValidPassword = await bcrypt.compare(password, user.pass);
+    const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       client.release();
       return res.status(401).json({ error: "Credenciais inválidas" });
@@ -44,7 +44,12 @@ async function loginUser(req, res) {
 
     // Criar token JWT
     const token = jwt.sign(
-      { id: user.id, username: user.username, email: user.email },
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+      },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",

@@ -7,7 +7,7 @@ const validateUser = [
   body("username").notEmpty().withMessage("Username é obrigatório"),
   body("email").notEmpty().withMessage("Email obrigatório"),
   body("email").isEmail().withMessage("Email inválido"),
-  body("pass").notEmpty().withMessage("Password obrigatória"),
+  body("password").notEmpty().withMessage("Password obrigatória"),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -20,7 +20,7 @@ const validateUser = [
 // ### REQUISIÇÕES ###
 // POST USERS
 async function postUsers(req, res) {
-  const { username, nome, email, pass, profile_id } = req.body;
+  const { username, name, email, password, profile_id } = req.body;
 
   try {
     const client = await pool.connect();
@@ -45,17 +45,17 @@ async function postUsers(req, res) {
         .json({ error: "O Username já está a ser utilizado" });
     }
 
-    // Criptografar a pass
-    const hashedPassword = await bcrypt.hash(pass, 10);
+    // Criptografar a password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Inserir o novo utilizador
     query = `
-      INSERT INTO Utilizador (username, nome, email, pass, profile_id)
+      INSERT INTO Utilizador (username, name, email, password, profile_id)
       VALUES ($1, $2, $3, $4, $5)
     `;
     await client.query(query, [
       username,
-      nome,
+      name,
       email,
       hashedPassword,
       profile_id,
@@ -74,7 +74,7 @@ async function getUsers(req, res) {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      "SELECT a.id, nome, username, email, b.descricao FROM Utilizador a JOIN Profile b ON a.profile_id=b.id ORDER BY id DESC"
+      "SELECT a.id, name, username, email, b.descricao FROM Utilizador a JOIN Profile b ON a.profile_id=b.id ORDER BY id DESC"
     );
     client.release();
     res.status(200).json(result.rows);
@@ -91,7 +91,7 @@ async function getUserById(req, res) {
   try {
     const client = await pool.connect();
     const query =
-      "SELECT id, nome, username, email FROM Utilizador WHERE id = $1";
+      "SELECT id, name, username, email FROM Utilizador WHERE id = $1";
     const result = await client.query(query, [userId]);
 
     client.release();
@@ -114,7 +114,7 @@ async function updateUser(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { id, username, nome, email, profile_id } = req.body;
+  const { id, username, name, email, profile_id } = req.body;
 
   try {
     const client = await pool.connect();
@@ -158,14 +158,14 @@ async function updateUser(req, res) {
       query = `
         UPDATE Utilizador
         SET username = $1,
-            nome = $2,
+            name = $2,
             email = $3,
             profile_id = $4
         WHERE id = $5
       `;
       result = await client.query(query, [
         username,
-        nome,
+        name,
         email,
         profile_id,
         id,
@@ -181,10 +181,10 @@ async function updateUser(req, res) {
     } else {
       // Inserir um novo utilizador
       query = `
-        INSERT INTO Utilizador (username, nome, email, profile_id)
+        INSERT INTO Utilizador (username, name, email, profile_id)
         VALUES ($1, $2, $3, $4)
       `;
-      result = await client.query(query, [username, nome, email, profile_id]);
+      result = await client.query(query, [username, name, email, profile_id]);
 
       client.release();
 
@@ -202,16 +202,16 @@ async function updateUser(req, res) {
 
 // UPDATE PASSWORD
 async function updatePassword(req, res) {
-  const { id, pass } = req.body;
+  const { id, password } = req.body;
 
   try {
     const client = await pool.connect();
 
     // Criptografar a nova senha
-    const hashedPassword = await bcrypt.hash(pass, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Atualizar a senha do usuário
-    const query = "UPDATE Utilizador SET pass = $1 WHERE id = $2";
+    const query = "UPDATE Utilizador SET password = $1 WHERE id = $2";
     const result = await client.query(query, [hashedPassword, id]);
 
     client.release();

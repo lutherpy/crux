@@ -94,6 +94,10 @@ const authConfig: NextAuthConfig = {
         session.accessToken = token.token as string;
       }
       return session;
+    },
+    authorized: async ({ auth }) => {
+      // Logged in users are authenticated, otherwise redirect to login page
+      return !!auth
     }
   }
 };

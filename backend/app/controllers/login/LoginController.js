@@ -25,7 +25,7 @@ async function loginUser(req, res) {
 
     // Verificar se o usuário existe
     const query =
-      "SELECT id, username, password, name, email FROM Utilizador WHERE username = $1";
+      "SELECT id, username, password, name, email, profile_id FROM Utilizador WHERE username = $1";
     const result = await client.query(query, [username]);
 
     if (result.rows.length === 0) {
@@ -49,6 +49,7 @@ async function loginUser(req, res) {
         username: user.username,
         email: user.email,
         name: user.name,
+        profile_id: user.profile_id,
       },
       process.env.JWT_SECRET,
       {

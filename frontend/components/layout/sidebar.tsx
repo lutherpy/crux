@@ -1,14 +1,17 @@
+// components/Sidebar.tsx
+
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { DashboardNav } from '@/components/dashboard-nav';
 import { navItems } from '@/components/layout/menu';
 import { cn } from '@/lib/utils';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, LogOut } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
 import Link from 'next/link';
-import { signOut } from 'next-auth/react';
 import { Button } from '../ui/button';
+import { LogoutConfirmDialog } from '../custom/logout-modal';
+import { signOut } from 'next-auth/react';
 
 type SidebarProps = {
   className?: string;
@@ -16,16 +19,21 @@ type SidebarProps = {
 
 export default function Sidebar({ className }: SidebarProps) {
   const { isMinimized, toggle } = useSidebar();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleToggle = () => {
     toggle();
   };
 
-  const handleLogout = () => {
-    signOut({
-      redirect: true,
-      callbackUrl: '/' // Redireciona para a página inicial após o logout
-    });
+  const handleLogout = async () => {
+    try {
+      await signOut({
+        redirect: true,
+        callbackUrl: '/' // Redireciona para a página inicial após o logout
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -66,10 +74,16 @@ export default function Sidebar({ className }: SidebarProps) {
           </div>
         </div>
         <div className="absolute bottom-4 w-full px-3">
+          <LogoutConfirmDialog
+            isOpen={isDialogOpen}
+            onClose={() => setIsDialogOpen(false)}
+            onLogout={handleLogout} // Passa a função de logout como prop
+          />
           <Button
-            onClick={handleLogout}
-            className="w-full rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+            onClick={() => setIsDialogOpen(true)}
+            className="flex w-full items-center justify-center rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
           >
+            <LogOut className="mr-2 h-4 w-4" /> {/* Ícone de Logout */}
             Logout
           </Button>
         </div>

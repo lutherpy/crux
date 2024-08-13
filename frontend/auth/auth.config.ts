@@ -34,8 +34,10 @@ const authenticateUser = async (
         id: response.data.user.id,
         name: response.data.user.name,
         email: response.data.user.email,
-        username: response.data.user.username
+        username: response.data.user.username,
+        profile_id: response.data.user.profile_id
       };
+   
     } else {
       return null;
     }
@@ -94,6 +96,7 @@ const authConfig: NextAuthConfig = {
         token.name = user.name;
         token.email = user.email;
         token.username = user.username;
+        token.profile_id = user.profile_id;
       }
       return token;
     },

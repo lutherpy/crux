@@ -9,6 +9,8 @@ interface User {
   username: string;
   email: string;
   token: string;
+  descricao: string;
+  profile_id: string;
 }
 
 // Extensão do tipo JWT para incluir o token

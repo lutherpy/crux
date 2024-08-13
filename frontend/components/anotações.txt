@@ -1,0 +1,1 @@
+- Filtrar acesso as paginas com base no perfil.

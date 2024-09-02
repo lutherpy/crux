@@ -50,6 +50,7 @@ export default function UserAuthForm() {
       });
     } catch (error) {
       console.error('Sign in error:', error);
+      alert('erro no login');
     } finally {
       setLoading(false); // Set loading state back to false
     }
@@ -99,7 +100,7 @@ export default function UserAuthForm() {
             )}
           />
           <Button disabled={loading} className="ml-auto w-full" type="submit">
-            Continue With Credentials
+            Fazer Login
           </Button>
         </form>
       </Form>

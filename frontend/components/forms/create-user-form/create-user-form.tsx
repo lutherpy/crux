@@ -61,22 +61,26 @@ export default function CreateUserForm() {
       const userService = new UserService();
       await userService.inserir(data);
       toast({
-        title: 'User added successfully!',
-        description: 'The user has been created successfully.'
+        title: 'Sucesso!',
+        description: 'O utilizador foi adicionado com sucesso.'
       });
       router.push('/dashboard/user');
     } catch (err) {
-      // Verifique se o erro possui uma mensagem e mostre-a
-      const errorMessage =
-        err instanceof Error && err.message
-          ? err.message
-          : 'An unknown error occurred.';
-
-      // Verifica se o erro é um erro de validação do backend e ajusta a mensagem
-      if (err.response && err.response.data && err.response.data.error) {
-        const backendErrorMessage = err.response.data.error;
+      // Checa se err é um objeto e se possui as propriedades esperadas
+      if (
+        typeof err === 'object' &&
+        err !== null &&
+        'response' in err &&
+        typeof (err as any).response === 'object' &&
+        (err as any).response !== null &&
+        'data' in (err as any).response &&
+        typeof (err as any).response.data === 'object' &&
+        (err as any).response.data !== null &&
+        'error' in (err as any).response.data
+      ) {
+        const backendErrorMessage = (err as any).response.data.error;
         toast({
-          title: 'Failed to add user.',
+          title: 'Erro ao adicionar o utilizador.',
           description: (
             <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
               <code className="text-white">Erro: {backendErrorMessage}</code>
@@ -84,6 +88,10 @@ export default function CreateUserForm() {
           )
         });
       } else {
+        const errorMessage =
+          err instanceof Error && err.message
+            ? err.message
+            : 'An unknown error occurred.';
         toast({
           title: 'Failed to add user.',
           description: (
@@ -196,13 +204,13 @@ export default function CreateUserForm() {
           <Button type="submit" disabled={loading}>
             {loading ? 'Adicionando...' : 'Adicionar Utilizador'}
           </Button>
+
           <Button
             variant={'outline'}
-            disabled={loading}
-            className="ml-5"
+            color="primary"
             onClick={() => router.push('/dashboard/user')}
           >
-            {loading ? '...' : 'Cancelar'}
+            Cancelar
           </Button>
         </form>
       </Form>

@@ -25,6 +25,10 @@ export const columns = ({
   onEdit
 }: UserColumnsProps): ColumnDef<User>[] => [
   {
+    accessorKey: 'id',
+    header: 'ID'
+  },
+  {
     accessorKey: 'name',
     header: 'Name'
   },

@@ -24,7 +24,7 @@ export default async function DashboardBlockLP() {
       <div className="space-y-2">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-2xl font-bold tracking-tight">
-            Olá {session?.user?.name}! Bem-vindo de Volta 👋
+            Olá {session?.user?.name}! Bem-vindo 👋
           </h2>
           <div className="hidden items-center space-x-2 md:flex">
             <CalendarDateRangePicker />

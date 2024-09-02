@@ -34,10 +34,8 @@ const authenticateUser = async (
         id: response.data.user.id,
         name: response.data.user.name,
         email: response.data.user.email,
-        username: response.data.user.username,
-        profile_id: response.data.user.profile_id
+        username: response.data.user.username
       };
-   
     } else {
       return null;
     }
@@ -86,8 +84,7 @@ const authConfig: NextAuthConfig = {
   },
   session: {
     maxAge: 60 * 60, // Tempo de expiração da sessão em segundos (1 minuto)
-    updateAge: 30* 60 , // Tempo em segundos para atualizar a sessão
-    
+    updateAge: 30 * 60 // Tempo em segundos para atualizar a sessão
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -96,7 +93,6 @@ const authConfig: NextAuthConfig = {
         token.name = user.name;
         token.email = user.email;
         token.username = user.username;
-        token.profile_id = user.profile_id;
       }
       return token;
     },

@@ -5,7 +5,6 @@ const pool = require("../../../db/DBConnection");
 const validateAplicacao = [
   body("name").notEmpty().withMessage("name é obrigatório"),
   body("departamento_id").notEmpty().withMessage("Departamento é obrigatório"),
-  body("Servidor").notEmpty().withMessage("Servidor é obrigatório"),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -23,8 +22,8 @@ async function postAplicacoes(req, res) {
   try {
     const client = await pool.connect();
 
-    // Verificar se o email já existe
-    let query = "SELECT COUNT(*) as count FROM Aplicacao WHERE name = $1";
+    // Verificar se a aplicação já existe
+    let query = "SELECT COUNT(*) as count FROM aplicacao WHERE name = $1";
     let result = await client.query(query, [name]);
 
     if (result.rows[0].count > 0) {
@@ -32,27 +31,38 @@ async function postAplicacoes(req, res) {
       return res.status(400).json({ error: "A Aplicação já existe" });
     }
 
-    // Inserir o novo Aplicacao
+    // Inserir a nova aplicação
     query = `
-      INSERT INTO Aplicacao (name, descricao, departamento_id, createdAt, updatedAt)
+      INSERT INTO aplicacao (name, descricao, departamento_id, createdAt, updatedAt)
       VALUES ($1, $2, $3, DEFAULT, DEFAULT)
+      RETURNING id
     `;
-    await client.query(query, [name, descricao, departamento_id]);
+    result = await client.query(query, [name, descricao, departamento_id]);
+
+    const aplicacaoId = result.rows[0].id;
+
+    // Associar a aplicação a um único servidor
+    if (servidor) {
+      query = `
+        INSERT INTO aplicacao_servidor (aplicacao_id, servidor_id)
+        VALUES ($1, $2)
+      `;
+      await client.query(query, [aplicacaoId, servidor]);
+    }
 
     client.release();
     res.status(201).send("Aplicação adicionada com sucesso.");
   } catch (error) {
     console.error("Erro ao adicionar a Aplicação:", error);
-    res.status(500).json({ error: "Erro ao adicionar Aplicacao" });
+    res.status(500).json({ error: "Erro ao adicionar Aplicação" });
   }
 }
-
 // GET Aplicacoes
 async function getAplicacoes(req, res) {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      "SELECT a.id AS aplicacao_id, a.name AS aplicacao_nome, a.descricao AS aplicacao_descricao, d.nome AS departamento_nome, s.id AS servidor_id, s.nome AS servidor_nome, s.ip_address AS servidor_ip, s.sistema_operacional AS servidor_sistema_operacional FROM aplicacao a LEFT JOIN departamento d ON a.departamento_id = d.id LEFT JOIN aplicacao_servidor aps ON a.id = aps.aplicacao_id LEFT JOIN servidor s ON aps.servidor_id = s.id ORDER BY a.id, s.id"
+      "SELECT a.id AS aplicacao_id, a.name AS aplicacao_name, a.descricao AS aplicacao_descricao, d.name AS departamento_name, s.id AS servidor_id, s.name AS servidor_name, s.ip_address AS servidor_ip, s.sistema_operacional AS servidor_sistema_operacional FROM aplicacao a LEFT JOIN departamento d ON a.departamento_id = d.id LEFT JOIN aplicacao_servidor aps ON a.id = aps.aplicacao_id LEFT JOIN servidor s ON aps.servidor_id = s.id ORDER BY a.id, s.id desc"
     );
     client.release();
     res.status(200).json(result.rows);
@@ -69,7 +79,7 @@ async function getAplicacaoById(req, res) {
   try {
     const client = await pool.connect();
     const query =
-      "SELECT  a.id AS aplicacao_id, a.name AS aplicacao_nome, a.descricao AS aplicacao_descricao, d.nome AS departamento_nome, s.id AS servidor_id, s.nome AS servidor_nome, s.ip_address AS servidor_ip, s.sistema_operacional AS servidor_sistema_operacional FROM  aplicacao a LEFT JOIN  departamento d ON a.departamento_id = d.id LEFT JOIN  aplicacao_servidor aps ON a.id = aps.aplicacao_id LEFT JOIN  servidor s ON aps.servidor_id = s.id WHERE id = $1";
+      "SELECT  a.id AS aplicacao_id, a.name AS aplicacao_name, a.descricao, a.departamento_id AS aplicacao_descricao, d.name AS departamento_name, s.id AS servidor_id, s.name AS servidor_name, s.ip_address AS servidor_ip, s.sistema_operacional AS servidor_sistema_operacional FROM  aplicacao a LEFT JOIN  departamento d ON a.departamento_id = d.id LEFT JOIN  aplicacao_servidor aps ON a.id = aps.aplicacao_id LEFT JOIN  servidor s ON aps.servidor_id = s.id WHERE a.id = $1";
     const result = await client.query(query, [aplicacaoId]);
 
     client.release();
@@ -92,36 +102,25 @@ async function updateAplicacao(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { id, name, descricao, departamento_id } = req.body;
+  const { id, name, descricao, departamento_id, servidor } = req.body;
+
+  let client;
 
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
 
-    // Verificar se o email já existe para outro Aplicacao
+    // Verificar se o nome já existe para outra aplicação
     let query =
       "SELECT COUNT(*) as count FROM Aplicacao WHERE name = $1 AND id != $2";
     let result = await client.query(query, [name, id]);
 
     if (result.rows[0].count > 0) {
-      client.release();
       return res.status(400).json({
-        error: "O Nome já está a ser utilizado por outra Aplicacao",
+        error: "O nome já está a ser utilizado por outra aplicação.",
       });
     }
 
-    // Verificar se o name já existe para outro Aplicacao
-    query =
-      "SELECT COUNT(*) as count FROM Aplicacao WHERE name = $1 AND id != $2";
-    result = await client.query(query, [aplicacaoname, id]);
-
-    if (result.rows[0].count > 0) {
-      client.release();
-      return res.status(400).json({
-        error: "O Nome já está a ser utilizado por outra Aplicacao",
-      });
-    }
-
-    // Atualizar o Aplicacao
+    // Atualizar a aplicação
     query = `
       UPDATE Aplicacao
       SET name = $1,
@@ -132,16 +131,34 @@ async function updateAplicacao(req, res) {
     `;
     result = await client.query(query, [name, descricao, departamento_id, id]);
 
-    client.release();
-
-    if (result.rowCount > 0) {
-      res.status(200).send("Aplicacao atualizada com sucesso.");
-    } else {
-      res.status(404).send("Aplicacao não encontrada.");
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Aplicação não encontrada." });
     }
+
+    // Atualizar a relação entre aplicação e servidor na tabela aplicacao_servidor
+    query = `
+      DELETE FROM aplicacao_servidor WHERE aplicacao_id = $1;
+    `;
+    await client.query(query, [id]);
+
+    if (servidor && servidor.length > 0) {
+      query = `
+        INSERT INTO aplicacao_servidor (aplicacao_id, servidor_id)
+        VALUES ($1, $2)
+      `;
+      for (const servidorId of servidor) {
+        await client.query(query, [id, servidorId]);
+      }
+    }
+
+    res.status(200).send("Aplicação atualizada com sucesso.");
   } catch (error) {
-    console.error("Erro ao atualizar Aplicacao:", error);
-    res.status(500).json({ error: "Erro ao atualizar Aplicacao" });
+    console.error("Erro ao atualizar Aplicação:", error);
+    res.status(500).json({ error: "Erro ao atualizar Aplicação" });
+  } finally {
+    if (client) {
+      client.release(); // Garantir que o cliente seja liberado
+    }
   }
 }
 
@@ -149,27 +166,40 @@ async function updateAplicacao(req, res) {
 async function deleteAplicacao(req, res) {
   const { id } = req.params;
 
-  try {
-    const client = await pool.connect();
+  let client;
 
-    // Verificar se o Aplicacao existe
+  try {
+    client = await pool.connect();
+
+    // Verificar se a aplicação existe
     let query = "SELECT COUNT(*) as count FROM Aplicacao WHERE id = $1";
     let result = await client.query(query, [id]);
 
     if (result.rows[0].count === 0) {
-      client.release();
-      return res.status(404).json({ error: "Aplicacao não encontrado" });
+      return res.status(404).json({ error: "Aplicação não encontrada" });
     }
 
-    // Deletar o Aplicacao
-    query = "DELETE FROM Aplicacao WHERE id = $1";
-    result = await client.query(query, [id]);
+    // Deletar registros relacionados na tabela aplicacao_servidor
+    query = "DELETE FROM aplicacao_servidor WHERE aplicacao_id = $1";
+    await client.query(query, [id]);
 
-    client.release();
-    res.status(200).send("Aplicacao deletada com sucesso.");
+    // Deletar a aplicação
+    query = "DELETE FROM Aplicacao WHERE id = $1";
+    const deleteResult = await client.query(query, [id]);
+
+    // Verificar se a aplicação foi deletada
+    if (deleteResult.rowCount > 0) {
+      res.status(200).send("Aplicação deletada com sucesso.");
+    } else {
+      res.status(500).json({ error: "Erro ao deletar Aplicação" });
+    }
   } catch (error) {
-    console.error("Erro ao deletar Aplicacao:", error);
-    res.status(500).json({ error: "Erro ao deletar Aplicacao" });
+    console.error("Erro ao deletar Aplicação:", error);
+    res.status(500).json({ error: "Erro ao deletar Aplicação" });
+  } finally {
+    if (client) {
+      client.release(); // Garantir que o cliente seja liberado
+    }
   }
 }
 

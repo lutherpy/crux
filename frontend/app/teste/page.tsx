@@ -13,7 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
-import CreateUserForm from '@/components/forms/create-user-form/create-user-form';
+import CreateUserForm from '@/components/forms/user/create-user-form/create-user-form';
 export default function Component() {
   return (
     <PageContainer scrollable={true}>

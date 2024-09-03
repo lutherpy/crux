@@ -1,8 +1,7 @@
-// app/add-user/page.tsx
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -33,74 +32,94 @@ const FormSchema = z.object({
     .string()
     .min(2, { message: 'Username must be at least 2 characters.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
-  password: z
-    .string()
-    .min(3, { message: 'Password must be at least 6 characters.' }),
+
   profile_id: z.string().min(1, { message: 'Profile is required.' })
 });
 
 type FormValues = z.infer<typeof FormSchema>;
 
-export default function CreateUserForm() {
+export default function EditUserForm() {
   const router = useRouter();
+  const { userId } = useParams();
   const [loading, setLoading] = useState(false);
+  const [profiles, setProfiles] = useState<
+    { id: string; description: string }[]
+  >([
+    { id: '1', description: 'Administrador' },
+    { id: '2', description: 'Utilizador' }
+  ]);
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: '',
       username: '',
       email: '',
-      password: '',
       profile_id: '1'
     }
   });
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const userService = new UserService();
+        const response = await userService.buscarPorId(Number(userId));
+        const user = response.data;
+        form.reset({
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          profile_id: String(user.profile_id)
+        });
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'An unknown error occurred.';
+        toast({
+          title: 'Failed to load user data.',
+          description: errorMessage
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchUser();
+    }
+  }, [userId, form]);
 
   const onSubmit = async (data: FormValues) => {
     try {
       setLoading(true);
       const userService = new UserService();
-      await userService.inserir(data);
-      toast({
-        title: 'Sucesso!',
-        description: 'O utilizador foi adicionado com sucesso.'
-      });
-      router.push('/dashboard/user');
-    } catch (err) {
-      // Checa se err é um objeto e se possui as propriedades esperadas
-      if (
-        typeof err === 'object' &&
-        err !== null &&
-        'response' in err &&
-        typeof (err as any).response === 'object' &&
-        (err as any).response !== null &&
-        'data' in (err as any).response &&
-        typeof (err as any).response.data === 'object' &&
-        (err as any).response.data !== null &&
-        'error' in (err as any).response.data
-      ) {
-        const backendErrorMessage = (err as any).response.data.error;
+
+      if (userId) {
+        const updatedUser = { ...data, id: Number(userId) };
+        await userService.alterar(updatedUser);
         toast({
-          title: 'Erro ao adicionar o utilizador.',
-          description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">Erro: {backendErrorMessage}</code>
-            </pre>
-          )
+          title: 'User updated successfully!',
+          description: 'The user has been updated successfully.'
         });
       } else {
-        const errorMessage =
-          err instanceof Error && err.message
-            ? err.message
-            : 'An unknown error occurred.';
+        await userService.inserir(data);
         toast({
-          title: 'Failed to add user.',
-          description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">Erro: {errorMessage}</code>
-            </pre>
-          )
+          title: 'User added successfully!',
+          description: 'The user has been created successfully.'
         });
       }
+
+      router.push('/dashboard/user');
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'An unknown error occurred.';
+      toast({
+        title: userId ? 'Failed to update user.' : 'Failed to add user.',
+        description: (
+          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+            <code className="text-white">Error: {errorMessage}</code>
+          </pre>
+        )
+      });
     } finally {
       setLoading(false);
     }
@@ -108,7 +127,7 @@ export default function CreateUserForm() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold">Criar Utilizador</h1>
+      <h1 className="mb-4 text-2xl font-bold">Editar Utilizador</h1>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -158,24 +177,7 @@ export default function CreateUserForm() {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="••••••"
-                    type="password"
-                    {...field}
-                    disabled={loading}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
           <FormField
             control={form.control}
             name="profile_id"
@@ -189,7 +191,7 @@ export default function CreateUserForm() {
                     disabled={loading}
                   >
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select profile" />
+                      <SelectValue placeholder="Select profile"></SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="1">Administrador</SelectItem>
@@ -202,15 +204,15 @@ export default function CreateUserForm() {
             )}
           />
           <Button type="submit" disabled={loading}>
-            {loading ? 'Adicionando...' : 'Adicionar Utilizador'}
+            {loading ? 'Atualizando...' : 'Atualizar Utilizador'}
           </Button>
-
           <Button
             variant={'outline'}
-            color="primary"
+            disabled={loading}
+            className="ml-5"
             onClick={() => router.push('/dashboard/user')}
           >
-            Cancelar
+            {loading ? '...' : 'Cancelar'}
           </Button>
         </form>
       </Form>

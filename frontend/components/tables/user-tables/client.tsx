@@ -6,10 +6,10 @@ import { DataTable } from '@/components/ui/data-table';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { UserService } from '@/service/UserService';
-import { User } from '@/constants/data';
+import { User } from '@/types/user';
 import { Plus, Loader2 } from 'lucide-react'; // Importa o ícone de carregamento
 import { useRouter } from 'next/navigation';
-import { columns } from './columns';
+import { columns } from '@/components/tables/user-tables/columns';
 import { toast } from '@/components/ui/use-toast';
 
 interface UserClientProps {
@@ -93,7 +93,7 @@ export const UserClient: React.FC<UserClientProps> = () => {
           {loading ? 'Adding...' : 'Add New'}
         </Button>
       </div>
-      <Separator />
+      <Separator className="mt-24" />
       <DataTable
         searchKey="name"
         columns={columns({

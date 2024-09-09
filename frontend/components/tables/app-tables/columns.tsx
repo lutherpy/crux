@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { User } from '@/constants/data';
+import { App } from '@/types/app';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash } from 'lucide-react';
 import {
@@ -15,50 +15,51 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
 
-interface UserColumnsProps {
-  onDelete: (userId: number) => void;
-  onEdit: (userId: number) => void;
+interface AppColumnsProps {
+  onDelete: (appId: number) => void;
+  onEdit: (appId: number) => void;
 }
 
 export const columns = ({
   onDelete,
   onEdit
-}: UserColumnsProps): ColumnDef<User>[] => [
+}: AppColumnsProps): ColumnDef<App>[] => [
   {
-    accessorKey: 'id',
+    accessorKey: 'aplicacao_id',
     header: 'ID'
   },
   {
-    accessorKey: 'name',
-    header: 'Name'
+    accessorKey: 'aplicacao_name',
+    header: 'Nome da Aplicação'
+  },
+
+  {
+    accessorKey: 'aplicacao_descricao',
+    header: 'Descrição'
   },
   {
-    accessorKey: 'email',
-    header: 'Email'
+    accessorKey: 'servidor_name',
+    header: 'Servidor'
   },
   {
-    accessorKey: 'username',
-    header: 'Username'
-  },
-  {
-    accessorKey: 'descricao',
-    header: 'Perfil'
+    accessorKey: 'departamento_name',
+    header: 'Divisão'
   },
   {
     id: 'actions',
     header: 'Actions',
     cell: ({ row }) => {
-      const user = row.original;
+      const app = row.original;
       const [open, setOpen] = useState(false);
 
       const handleDelete = () => {
         setOpen(false);
-        onDelete(user.id);
+        onDelete(app.id);
       };
 
       return (
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => onEdit(user.id)}>
+          <Button variant="outline" onClick={() => onEdit(app.id)}>
             <Pencil className="h-4 w-4" />
           </Button>
 
@@ -75,7 +76,7 @@ export const columns = ({
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   This action cannot be undone. This will permanently delete the
-                  user.
+                  app.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

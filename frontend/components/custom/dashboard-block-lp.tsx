@@ -18,7 +18,7 @@ import { BlockLp } from '@/components/custom/block-lp';
 
 export default async function DashboardBlockLP() {
   const session = await auth();
-  console.log(session);
+
   return (
     <PageContainer scrollable={true}>
       <div className="space-y-2">
@@ -34,7 +34,7 @@ export default async function DashboardBlockLP() {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="Sample">Sample</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -163,8 +163,8 @@ export default async function DashboardBlockLP() {
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="analytics" className="space-y-4">
-            <BlockLp />
+          <TabsContent value="Sample" className="space-y-4">
+            Hello World!
           </TabsContent>
         </Tabs>
       </div>

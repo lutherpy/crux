@@ -4,13 +4,13 @@ import { JWT } from 'next-auth/jwt';
 
 // Definição do tipo User para o NextAuth
 interface User {
-  id: string;
+  id: number;
   name: string;
   username: string;
   email: string;
   token: string;
   descricao: string;
-  profile_id: string;
+  profile: string;
 }
 
 // Extensão do tipo JWT para incluir o token

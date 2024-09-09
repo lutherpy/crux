@@ -62,6 +62,7 @@ export const Icons = {
   sun: SunMedium,
   moon: Moon,
   laptop: Laptop,
+  app: LayoutDashboardIcon,
   gitHub: ({ ...props }: LucideProps) => (
     <svg
       aria-hidden="true"

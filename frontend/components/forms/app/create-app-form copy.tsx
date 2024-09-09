@@ -1,7 +1,8 @@
+// app/add-app/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -23,103 +24,77 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { UserService } from '@/service/UserService';
+import { AppService } from '@/service/AppService';
 import { toast } from '@/components/ui/use-toast';
 
 const FormSchema = z.object({
-  name: z.string().min(1, { message: 'Name is required.' }),
-  username: z
-    .string()
-    .min(2, { message: 'Username must be at least 2 characters.' }),
-  email: z.string().email({ message: 'Invalid email address.' }),
-
-  profile_id: z.string().min(1, { message: 'Profile is required.' })
+  name: z.string().min(2, { message: 'Name is required.' }),
+  descricao: z.string().optional(),
+  departamento: z.string().min(3, { message: 'Departamento é obrigatório.' }),
+  servidor: z.string().min(3, { message: 'Servidor is required.' })
 });
 
 type FormValues = z.infer<typeof FormSchema>;
 
-export default function EditUserForm() {
+export default function CreateAppForm() {
   const router = useRouter();
-  const { userId } = useParams();
   const [loading, setLoading] = useState(false);
-  const [profiles, setProfiles] = useState<
-    { id: string; description: string }[]
-  >([
-    { id: '1', description: 'Administrador' },
-    { id: '2', description: 'Utilizador' }
-  ]);
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: '',
-      username: '',
-      email: '',
-      profile_id: '1'
+      descricao: '',
+      departamento: '',
+      servidor: ''
     }
   });
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const userService = new UserService();
-        const response = await userService.buscarPorId(Number(userId));
-        const user = response.data;
-        form.reset({
-          name: user.name,
-          username: user.username,
-          email: user.email,
-          profile_id: String(user.profile_id)
-        });
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'An unknown error occurred.';
-        toast({
-          title: 'Failed to load user data.',
-          description: errorMessage
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (userId) {
-      fetchUser();
-    }
-  }, [userId, form]);
 
   const onSubmit = async (data: FormValues) => {
     try {
       setLoading(true);
-      const userService = new UserService();
-
-      if (userId) {
-        const updatedUser = { ...data, id: Number(userId) };
-        await userService.alterar(updatedUser);
+      const appService = new AppService();
+      await appService.inserir(data);
+      toast({
+        title: 'Sucesso!',
+        description: 'O utilizador foi adicionado com sucesso.'
+      });
+      router.push('/dashboard/app');
+    } catch (err) {
+      // Checa se err é um objeto e se possui as propriedades esperadas
+      if (
+        typeof err === 'object' &&
+        err !== null &&
+        'response' in err &&
+        typeof (err as any).response === 'object' &&
+        (err as any).response !== null &&
+        'data' in (err as any).response &&
+        typeof (err as any).response.data === 'object' &&
+        (err as any).response.data !== null &&
+        'error' in (err as any).response.data
+      ) {
+        const backendErrorMessage = (err as any).response.data.error;
         toast({
-          title: 'User updated successfully!',
-          description: 'The user has been updated successfully.'
+          title: 'Erro ao adicionar o utilizador.',
+          description: (
+            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+              <code className="text-white">Erro: {backendErrorMessage}</code>
+            </pre>
+          )
         });
       } else {
-        await userService.inserir(data);
+        const errorMessage =
+          err instanceof Error && err.message
+            ? err.message
+            : 'An unknown error occurred.';
         toast({
-          title: 'User added successfully!',
-          description: 'The user has been created successfully.'
+          title: 'Failed to add app.',
+          description: (
+            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+              <code className="text-white">Erro: {errorMessage}</code>
+            </pre>
+          )
         });
       }
-
-      router.push('/dashboard/user');
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'An unknown error occurred.';
-      toast({
-        title: userId ? 'Failed to update user.' : 'Failed to add user.',
-        description: (
-          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-            <code className="text-white">Error: {errorMessage}</code>
-          </pre>
-        )
-      });
     } finally {
       setLoading(false);
     }
@@ -127,7 +102,7 @@ export default function EditUserForm() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold">Editar Utilizador</h1>
+      <h1 className="mb-4 text-2xl font-bold">Criar Utilizador</h1>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -148,10 +123,10 @@ export default function EditUserForm() {
           />
           <FormField
             control={form.control}
-            name="username"
+            name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>Appname</FormLabel>
                 <FormControl>
                   <Input placeholder="john_doe" {...field} disabled={loading} />
                 </FormControl>
@@ -161,14 +136,14 @@ export default function EditUserForm() {
           />
           <FormField
             control={form.control}
-            name="email"
+            name="descricao"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Descricao</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="john@example.com"
-                    type="email"
+                    type="text"
                     {...field}
                     disabled={loading}
                   />
@@ -177,13 +152,30 @@ export default function EditUserForm() {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
-            name="profile_id"
+            name="departamento"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Perfil</FormLabel>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="DSI"
+                    type="text"
+                    {...field}
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="servidor"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Servidor</FormLabel>
                 <FormControl>
                   <Select
                     value={field.value}
@@ -191,11 +183,11 @@ export default function EditUserForm() {
                     disabled={loading}
                   >
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select profile"></SelectValue>
+                      <SelectValue placeholder="Select profile" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">Administrador</SelectItem>
-                      <SelectItem value="2">Utilizador</SelectItem>
+                      <SelectItem value="1">Servidor 1</SelectItem>
+                      <SelectItem value="2">Servidor 2</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -204,8 +196,9 @@ export default function EditUserForm() {
             )}
           />
           <Button type="submit" disabled={loading}>
-            {loading ? 'Atualizando...' : 'Atualizar Utilizador'}
+            {loading ? 'Adicionando...' : 'Adicionar Aplicação'}
           </Button>
+
           <Button
             variant={'outline'}
             disabled={loading}

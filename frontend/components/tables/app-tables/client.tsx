@@ -5,70 +5,70 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
-import { UserService } from '@/service/UserService';
-import { User } from '@/constants/data';
+import { AppService } from '@/service/AppService';
+import { App } from '@/types/app';
 import { Plus, Loader2 } from 'lucide-react'; // Importa o ícone de carregamento
 import { useRouter } from 'next/navigation';
-import { columns } from './columns';
+import { columns } from '@/components/tables/app-tables/columns';
 import { toast } from '@/components/ui/use-toast';
 
-interface UserClientProps {
-  data?: User[]; // Data will now be fetched dynamically
+interface AppClientProps {
+  data?: App[]; // Data will now be fetched dynamically
 }
 
-export const UserClient: React.FC<UserClientProps> = () => {
-  const [users, setUsers] = useState<User[]>([]);
+export const AppClient: React.FC<AppClientProps> = () => {
+  const [apps, setApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Fetch users from the backend
-    const fetchUsers = async () => {
+    // Fetch apps from the backend
+    const fetchApps = async () => {
       try {
-        const userService = new UserService();
-        const response = await userService.listarTodos();
-        setUsers(response);
+        const appService = new AppService();
+        const response = await appService.listarTodos();
+        setApps(response);
       } catch (error) {
         toast({
-          title: 'Error fetching users',
-          description: 'Could not retrieve users from the server.',
+          title: 'Error fetching apps',
+          description: 'Could not retrieve apps from the server.',
           variant: 'destructive'
         });
       }
     };
 
-    fetchUsers();
+    fetchApps();
   }, []);
 
-  const handleDeleteUser = async (userId: number) => {
+  const handleDeleteApp = async (appId: number) => {
     try {
-      const userService = new UserService();
-      await userService.excluir(userId);
-      setUsers(users.filter((user) => user.id !== userId));
+      const appService = new AppService();
+      await appService.excluir(appId);
+      setApps(apps.filter((app) => app.id !== appId));
       toast({
-        title: 'User deleted',
-        description: 'The user has been deleted successfully.'
+        title: 'App deleted',
+        description: 'The app has been deleted successfully.'
       });
     } catch (error) {
       toast({
-        title: 'Error deleting user',
-        description: 'Could not delete the user. Please try again.',
+        title: 'Error deleting app',
+        description: 'Could not delete the app. Please try again.',
         variant: 'destructive'
       });
     }
   };
 
-  const handleEditUser = async (userId: number) => {
+  const handleEditApp = async (appId: number) => {
     setLoading(true);
-    router.push(`/dashboard/user/${userId}/edit`);
+    router.push(`/dashboard/apps/${appId}/edit`);
     setLoading(false);
   };
 
-  const handleAddNewUser = async () => {
+  const handleAddNewApp = async () => {
     setLoading(true);
     // Redireciona com um pequeno atraso para mostrar o carregamento
     setTimeout(() => {
-      router.push(`/dashboard/user/new`);
+      router.push(`/dashboard/apps/new`);
       setLoading(false);
     }, 300); // Ajuste o atraso conforme necessário
   };
@@ -77,12 +77,12 @@ export const UserClient: React.FC<UserClientProps> = () => {
     <>
       <div className="flex items-start justify-between">
         <Heading
-          title={`Users (${users.length})`}
-          description="Manage users (Client side table functionalities.)"
+          title={`Apps (${apps.length})`}
+          description="Manage apps (Client side table functionalities.)"
         />
         <Button
           className="text-xs md:text-sm"
-          onClick={handleAddNewUser}
+          onClick={handleAddNewApp}
           disabled={loading}
         >
           {loading ? (
@@ -93,14 +93,14 @@ export const UserClient: React.FC<UserClientProps> = () => {
           {loading ? 'Adding...' : 'Add New'}
         </Button>
       </div>
-      <Separator />
+      <Separator className="mt-24" />
       <DataTable
         searchKey="name"
         columns={columns({
-          onDelete: handleDeleteUser,
-          onEdit: handleEditUser
+          onDelete: handleDeleteApp,
+          onEdit: handleEditApp
         })}
-        data={users}
+        data={apps}
       />
     </>
   );

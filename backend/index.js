@@ -12,6 +12,7 @@ const userRoutes = require("./app/routes/user/UsersRoutes");
 const profileRoutes = require("./app/routes/profile/ProfileRoutes");
 const loginRoutes = require("./app/routes/login/LoginRoutes");
 const aplicacaoRoutes = require("./app/routes/aplicacao/AplicacaoRoutes");
+const servidorRoutes = require("./app/routes/servidor/ServidorRoutes");
 
 // Permitir o acesso de diferentes servidores
 app.use(cors());
@@ -40,6 +41,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/aplicacao", aplicacaoRoutes);
+app.use("/api/servidor", servidorRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

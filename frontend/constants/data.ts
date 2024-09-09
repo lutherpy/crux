@@ -1,1 +1,0 @@
-import { NavItem } from '@/types';

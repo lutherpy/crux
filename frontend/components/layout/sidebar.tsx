@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { DashboardNav } from '@/components/dashboard-nav';
-import { navItems } from '@/components/layout/menu';
+import { navItems } from '@/components/layout/sidebar-menu';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, LogOut } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import { LogoutConfirmDialog } from '../custom/logout-modal';
 import { signOut } from 'next-auth/react';
+import { Separator } from '../ui/separator';
 
 type SidebarProps = {
   className?: string;

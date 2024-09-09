@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { User } from '@/constants/data';
+import { User } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash } from 'lucide-react';
 import {

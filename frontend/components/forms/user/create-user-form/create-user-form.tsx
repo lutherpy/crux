@@ -207,9 +207,11 @@ export default function CreateUserForm() {
 
           <Button
             variant={'outline'}
-            onClick={() => router.push('/dashboard/user')}
+            disabled={loading}
+            className="ml-5"
+            onClick={() => router.back()}
           >
-            Cancelar
+            {loading ? '...' : 'Cancelars'}
           </Button>
         </form>
       </Form>

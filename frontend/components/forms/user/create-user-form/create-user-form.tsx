@@ -2,7 +2,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -25,7 +25,12 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { UserService } from '@/service/UserService';
+import { DepartamentoService } from '@/service/DepartamentoService';
+import { ProfileService } from '@/service/ProfileService';
+import { Departamento } from '@/types/departamento';
+import { Perfil } from '@/types/perfil';
 import { toast } from '@/components/ui/use-toast';
+import Link from 'next/link';
 
 const FormSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
@@ -36,7 +41,8 @@ const FormSchema = z.object({
   password: z
     .string()
     .min(3, { message: 'Password must be at least 6 characters.' }),
-  profile_id: z.string().min(1, { message: 'Profile is required.' })
+  perfil: z.string().min(1, { message: 'Profile is required.' }),
+  departamento: z.string().min(1, { message: 'Departamento is required.' })
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -44,6 +50,8 @@ type FormValues = z.infer<typeof FormSchema>;
 export default function CreateUserForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
+  const [perfis, setPerfis] = useState<Perfil[]>([]);
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -51,9 +59,50 @@ export default function CreateUserForm() {
       username: '',
       email: '',
       password: '',
-      profile_id: ''
+      perfil: '',
+      departamento: ''
     }
   });
+
+  // Função para buscar departamentos
+  const fetchDepartamentos = async () => {
+    try {
+      const departamentoservice = new DepartamentoService();
+      const departamentosList = await departamentoservice.listarTodos(); // Presumindo que esse método já funciona
+      setDepartamentos(departamentosList);
+      console.log('Departamentos:', departamentosList); // Adicionado para depuração
+    } catch (err) {
+      toast({
+        title: 'Erro ao carregar departamentos.',
+        description: 'Não foi possível carregar a lista de departamentos.'
+      });
+    }
+  };
+
+  // Executa a busca ao montar o componente
+  useEffect(() => {
+    fetchDepartamentos();
+  }, []);
+
+  // Função para buscar departamentos
+  const fetchProfiles = async () => {
+    try {
+      const profileService = new ProfileService();
+      const profilesList = await profileService.listarTodos(); // Presumindo que esse método já funciona
+      setPerfis(profilesList);
+      console.log('Departamentos:', profilesList); // Adicionado para depuração
+    } catch (err) {
+      toast({
+        title: 'Erro ao carregar perfis.',
+        description: 'Não foi possível carregar a lista de perfis.'
+      });
+    }
+  };
+
+  // Executa a busca ao montar o componente
+  useEffect(() => {
+    fetchProfiles();
+  }, []);
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -178,7 +227,44 @@ export default function CreateUserForm() {
           />
           <FormField
             control={form.control}
-            name="profile_id"
+            name="departamento"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Departamento</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value)}
+                    disabled={loading}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Selecione o departamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departamentos.length > 0 ? (
+                        departamentos.map((departamento) => (
+                          <SelectItem
+                            key={departamento.id}
+                            value={departamento.id.toString()}
+                          >
+                            {departamento.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem disabled value="">
+                          Nenhum departamento encontrado
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="perfil"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Perfil</FormLabel>
@@ -189,11 +275,23 @@ export default function CreateUserForm() {
                     disabled={loading}
                   >
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select profile" />
+                      <SelectValue placeholder="Selecione o perfil" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">Administrador</SelectItem>
-                      <SelectItem value="2">Utilizador</SelectItem>
+                      {perfis.length > 0 ? (
+                        perfis.map((perfil) => (
+                          <SelectItem
+                            key={perfil.id}
+                            value={perfil.id.toString()}
+                          >
+                            {perfil.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem disabled value="">
+                          Nenhum perfil encontrado
+                        </SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -205,14 +303,11 @@ export default function CreateUserForm() {
             {loading ? 'Adicionando...' : 'Adicionar Utilizador'}
           </Button>
 
-          <Button
-            variant={'outline'}
-            disabled={loading}
-            className="ml-5"
-            onClick={() => router.back()}
-          >
-            {loading ? '...' : 'Cancelars'}
-          </Button>
+          <Link href="/dashboard/apps" passHref>
+            <Button variant={'outline'} disabled={loading} className="ml-5">
+              Cancelar
+            </Button>
+          </Link>
         </form>
       </Form>
     </div>

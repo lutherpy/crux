@@ -1,6 +1,6 @@
 import CreateAppForm from '@/components/forms/app/create-app-form';
 
-export default function AddUserPage() {
+export default function AddAppPage() {
   return (
     <div className="container">
       <CreateAppForm />

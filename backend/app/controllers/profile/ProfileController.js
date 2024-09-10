@@ -3,7 +3,7 @@ const pool = require("../../../db/DBConnection");
 
 // Middleware de validação
 const validateProfile = [
-  body("descricao").notEmpty().withMessage("Descrição é obrigatória"),
+  body("name").notEmpty().withMessage("Descrição é obrigatória"),
 
   (req, res, next) => {
     const errors = validationResult(req);
@@ -21,14 +21,14 @@ async function postProfiles(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { descricao } = req.body;
+  const { name } = req.body;
 
   try {
     const client = await pool.connect();
 
     // Verificar se já existe
-    let query = "SELECT COUNT(*) as count FROM Profile WHERE descricao = $1";
-    let result = await client.query(query, [descricao]);
+    let query = "SELECT COUNT(*) as count FROM perfil WHERE name = $1";
+    let result = await client.query(query, [name]);
 
     if (result.rows[0].count > 0) {
       return res
@@ -37,9 +37,9 @@ async function postProfiles(req, res) {
     }
 
     // Inserir o novo perfil
-    query = "INSERT INTO Profile (descricao) VALUES ($1)";
+    query = "INSERT INTO perfil (name) VALUES ($1)";
 
-    await client.query(query, [descricao]);
+    await client.query(query, [name]);
 
     res.status(201).send("Profile adicionado com sucesso.");
     client.release();
@@ -53,7 +53,7 @@ async function postProfiles(req, res) {
 async function getProfiles(req, res) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT * FROM Profile ORDER BY id DESC");
+    const result = await client.query("SELECT * FROM perfil ORDER BY id DESC");
     res.status(200).json(result.rows);
     client.release();
   } catch (error) {
@@ -91,15 +91,15 @@ async function updateProfile(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { id, descricao } = req.body;
+  const { id, name } = req.body;
 
   try {
     const client = await pool.connect();
 
     // Verificar se já existe para outro perfil
     let query =
-      "SELECT COUNT(*) as count FROM Profile WHERE descricao = $1 AND id != $2";
-    let result = await client.query(query, [descricao, id]);
+      "SELECT COUNT(*) as count FROM Profile WHERE name = $1 AND id != $2";
+    let result = await client.query(query, [name, id]);
 
     if (result.rows[0].count > 0) {
       return res
@@ -108,8 +108,8 @@ async function updateProfile(req, res) {
     }
 
     // Atualizar o perfil
-    query = "UPDATE Profile SET descricao = $1 WHERE id = $2";
-    result = await client.query(query, [descricao, id]);
+    query = "UPDATE Profile SET name = $1 WHERE id = $2";
+    result = await client.query(query, [name, id]);
 
     if (result.rowCount > 0) {
       res.status(200).send("Profile atualizado com sucesso.");

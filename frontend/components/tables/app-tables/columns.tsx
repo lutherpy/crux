@@ -14,6 +14,7 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface AppColumnsProps {
   onDelete: (appId: number) => void;
@@ -25,16 +26,35 @@ export const columns = ({
   onEdit
 }: AppColumnsProps): ColumnDef<App>[] => [
   {
-    accessorKey: 'aplicacao_id',
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false
+  },
+  {
+    accessorKey: 'id',
     header: 'ID'
   },
   {
-    accessorKey: 'aplicacao_name',
+    accessorKey: 'name',
     header: 'Nome da Aplicação'
   },
 
   {
-    accessorKey: 'aplicacao_descricao',
+    accessorKey: 'descricao',
     header: 'Descrição'
   },
   {

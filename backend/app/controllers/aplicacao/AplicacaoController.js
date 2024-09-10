@@ -4,7 +4,7 @@ const pool = require("../../../db/DBConnection");
 // Middleware de validação
 const validateAplicacao = [
   body("name").notEmpty().withMessage("name é obrigatório"),
-  body("departamento_id").notEmpty().withMessage("Departamento é obrigatório"),
+  body("departamento").notEmpty().withMessage("Departamento é obrigatório"),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -17,7 +17,7 @@ const validateAplicacao = [
 // ### REQUISIÇÕES ###
 // POST AplicacaoS
 async function postAplicacoes(req, res) {
-  const { name, descricao, departamento_id, servidor } = req.body;
+  const { name, descricao, departamento, servidor } = req.body;
 
   try {
     const client = await pool.connect();
@@ -33,11 +33,16 @@ async function postAplicacoes(req, res) {
 
     // Inserir a nova aplicação
     query = `
-      INSERT INTO aplicacao (name, descricao, departamento_id, createdAt, updatedAt)
-      VALUES ($1, $2, $3, DEFAULT, DEFAULT)
+      INSERT INTO aplicacao (name, descricao, departamento, servidor, createdAt, updatedAt)
+      VALUES ($1, $2, $3, $4, DEFAULT, DEFAULT)
       RETURNING id
     `;
-    result = await client.query(query, [name, descricao, departamento_id]);
+    result = await client.query(query, [
+      name,
+      descricao,
+      departamento,
+      servidor,
+    ]);
 
     const aplicacaoId = result.rows[0].id;
 
@@ -62,7 +67,7 @@ async function getAplicacoes(req, res) {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      "SELECT a.id AS aplicacao_id, a.name AS aplicacao_name, a.descricao AS aplicacao_descricao, d.name AS departamento_name, s.id AS servidor_id, s.name AS servidor_name, s.ip_address AS servidor_ip, s.sistema_operacional AS servidor_sistema_operacional FROM aplicacao a LEFT JOIN departamento d ON a.departamento_id = d.id LEFT JOIN aplicacao_servidor aps ON a.id = aps.aplicacao_id LEFT JOIN servidor s ON aps.servidor_id = s.id ORDER BY a.id, s.id desc"
+      "SELECT a.id as id, a.name AS name, a.descricao, a.departamento, a.servidor AS servidor, d.name AS departamento_name, s.name AS servidor_name FROM aplicacao a LEFT JOIN departamento d ON a.departamento = d.id LEFT JOIN aplicacao_servidor aps ON a.id = aps.aplicacao_id LEFT JOIN servidor s ON aps.servidor_id = s.id ORDER BY a.id, s.id desc"
     );
     client.release();
     res.status(200).json(result.rows);
@@ -79,7 +84,7 @@ async function getAplicacaoById(req, res) {
   try {
     const client = await pool.connect();
     const query =
-      "SELECT  a.id AS aplicacao_id, a.name AS aplicacao_name, a.descricao, a.departamento_id AS aplicacao_descricao, d.name AS departamento_name, s.id AS servidor_id, s.name AS servidor_name, s.ip_address AS servidor_ip, s.sistema_operacional AS servidor_sistema_operacional FROM  aplicacao a LEFT JOIN  departamento d ON a.departamento_id = d.id LEFT JOIN  aplicacao_servidor aps ON a.id = aps.aplicacao_id LEFT JOIN  servidor s ON aps.servidor_id = s.id WHERE a.id = $1";
+      "SELECT  a.id AS id, a.name AS name, a.descricao AS descricao, a.servidor AS servidor, a.departamento AS departamento, d.name AS departamento_d, s.id AS servidor_id, s.name AS servidor_name, s.ip_address AS servidor_ip, s.sistema_operacional AS servidor_sistema_operacional FROM  aplicacao a LEFT JOIN  departamento d ON a.departamento = d.id LEFT JOIN  aplicacao_servidor aps ON a.id = aps.aplicacao_id LEFT JOIN  servidor s ON aps.servidor_id = s.id WHERE a.id = $1";
     const result = await client.query(query, [aplicacaoId]);
 
     client.release();
@@ -102,7 +107,7 @@ async function updateAplicacao(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { id, name, descricao, departamento_id, servidor } = req.body;
+  const { id, name, descricao, departamento, servidor } = req.body;
 
   let client;
 
@@ -125,11 +130,18 @@ async function updateAplicacao(req, res) {
       UPDATE Aplicacao
       SET name = $1,
           descricao = $2,
-          departamento_id = $3,
+          departamento = $3,
+          servidor = $4,
           updatedAt = DEFAULT
-      WHERE id = $4
+      WHERE id = $5
     `;
-    result = await client.query(query, [name, descricao, departamento_id, id]);
+    result = await client.query(query, [
+      name,
+      descricao,
+      departamento,
+      servidor,
+      id,
+    ]);
 
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Aplicação não encontrada." });

@@ -1,12 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Form,
   FormControl,
@@ -24,11 +24,12 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { AppService } from '@/service/AppService';
+import { toast } from '@/components/ui/use-toast';
+import { DepartamentoService } from '@/service/DepartamentoService';
+import { ServidorService } from '@/service/ServidorService';
 import { Servidor } from '@/types/servidor';
 import { Departamento } from '@/types/departamento';
-import { ServidorService } from '@/service/ServidorService';
-import { DepartamentoService } from '@/service/DepartamentoService';
-import { toast } from '@/components/ui/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 
 const FormSchema = z.object({
@@ -40,8 +41,9 @@ const FormSchema = z.object({
 
 type FormValues = z.infer<typeof FormSchema>;
 
-export default function CreateAppForm() {
+export default function EditAppForm() {
   const router = useRouter();
+  const { appId } = useParams();
   const [loading, setLoading] = useState(false);
   const [servidores, setServidores] = useState<Servidor[]>([]);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
@@ -96,24 +98,67 @@ export default function CreateAppForm() {
     fetchDepartamentos();
   }, []);
 
+  useEffect(() => {
+    const fetchApp = async () => {
+      try {
+        setLoading(true);
+        const appService = new AppService();
+        const response = await appService.buscarPorId(Number(appId));
+        const app = response.data;
+        form.reset({
+          name: app.name,
+          descricao: app.descricao,
+          departamento: app.departamento,
+          servidor: app.servidor
+        });
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'An unknown error occurred.';
+        toast({
+          title: 'Failed to load app data.',
+          description: errorMessage
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (appId) {
+      fetchApp();
+    }
+  }, [appId, form]);
+
   const onSubmit = async (data: FormValues) => {
     try {
       setLoading(true);
       const appService = new AppService();
-      await appService.inserir(data);
-      toast({
-        title: 'Sucesso!',
-        description: 'A aplicação foi adicionada com sucesso.'
-      });
+
+      if (appId) {
+        const updatedApp = { ...data, id: Number(appId) };
+        await appService.alterar(updatedApp);
+        toast({
+          title: 'App updated successfully!',
+          description: 'The app has been updated successfully.'
+        });
+      } else {
+        await appService.inserir(data);
+        toast({
+          title: 'App added successfully!',
+          description: 'The app has been created successfully.'
+        });
+      }
+
       router.push('/dashboard/apps');
     } catch (err) {
       const errorMessage =
-        err instanceof Error && err.message
-          ? err.message
-          : 'An unknown error occurred.';
+        err instanceof Error ? err.message : 'An unknown error occurred.';
       toast({
-        title: 'Erro ao adicionar aplicação.',
-        description: errorMessage
+        title: appId ? 'Failed to update app.' : 'Failed to add app.',
+        description: (
+          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+            <code className="text-white">Error: {errorMessage}</code>
+          </pre>
+        )
       });
     } finally {
       setLoading(false);
@@ -122,7 +167,7 @@ export default function CreateAppForm() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold">Criar Aplicação</h1>
+      <h1 className="mb-4 text-2xl font-bold">Editar Aplicação</h1>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -152,11 +197,7 @@ export default function CreateAppForm() {
               <FormItem>
                 <FormLabel>Descrição</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Uma pequena descrição sobre a utilidade da aplicação."
-                    className="resize-none"
-                    {...field}
-                  />
+                  <Textarea className="resize-none" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -241,7 +282,6 @@ export default function CreateAppForm() {
           <Button type="submit" disabled={loading}>
             {loading ? 'Adicionando...' : 'Adicionar Aplicação'}
           </Button>
-
           <Link href="/dashboard/apps" passHref>
             <Button variant={'outline'} disabled={loading} className="ml-5">
               Cancelar

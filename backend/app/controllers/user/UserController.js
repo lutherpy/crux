@@ -20,7 +20,7 @@ const validateUser = [
 // ### REQUISIÇÕES ###
 // POST USERS
 async function postUsers(req, res) {
-  const { username, name, email, password, profile_id } = req.body;
+  const { username, name, email, password, departamento, perfil } = req.body;
 
   try {
     const client = await pool.connect();
@@ -50,16 +50,29 @@ async function postUsers(req, res) {
 
     // Inserir o novo utilizador
     query = `
-      INSERT INTO Utilizador (username, name, email, password, profile_id, createdAt, updatedAt)
-      VALUES ($1, $2, $3, $4, $5, DEFAULT, DEFAULT)
+      INSERT INTO Utilizador (username, name, email, password, perfil, departamento, createdAt, updatedAt)
+      VALUES ($1, $2, $3, $4, $5, $6, DEFAULT, DEFAULT) RETURNING id
     `;
-    await client.query(query, [
+    const insertResult = await client.query(query, [
       username,
       name,
       email,
       hashedPassword,
-      profile_id,
+      perfil,
+      departamento,
     ]);
+
+    // Obter o ID do utilizador recém-adicionado
+    const utilizadorId = insertResult.rows[0].id;
+
+    // Inserir na tabela Utilizador_Departamento
+    if (departamento) {
+      query = `
+        INSERT INTO Utilizador_Departamento (utilizador_id, departamento_id)
+        VALUES ($1, $2)
+      `;
+      await client.query(query, [utilizadorId, departamento]);
+    }
 
     client.release();
     res.status(201).send("Utilizador adicionado com sucesso.");
@@ -74,7 +87,7 @@ async function getUsers(req, res) {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      "SELECT a.id, name, username, email, b.descricao, a.createdAt, a.updatedAt FROM Utilizador a JOIN Profile b ON a.profile_id=b.id ORDER BY id DESC"
+      "SELECT u.id AS id, u.name AS name, u.username AS username, u.email AS email, u.password AS password, u.departamento AS departamento_id, u.perfil AS perfil_id, d.name AS departamento, p.name AS perfil FROM utilizador u LEFT JOIN departamento d ON u.departamento = d.id LEFT JOIN perfil p ON u.perfil = p.id;"
     );
     client.release();
     res.status(200).json(result.rows);
@@ -91,7 +104,7 @@ async function getUserById(req, res) {
   try {
     const client = await pool.connect();
     const query =
-      "SELECT id, name, username, email, createdAt, updatedAt FROM Utilizador WHERE id = $1";
+      "SELECT u.id AS id, u.name AS name, u.username AS username, u.email AS email, u.password AS password, u.departamento AS departamento, u.perfil AS perfil, d.name AS departamento_d, p.name AS perfil_p FROM utilizador u LEFT JOIN departamento d ON u.departamento = d.id LEFT JOIN perfil p ON u.perfil = p.id WHERE u.id = $1";
     const result = await client.query(query, [userId]);
 
     client.release();
@@ -114,7 +127,7 @@ async function updateUser(req, res) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { id, username, name, email, profile_id } = req.body;
+  const { id, username, name, email, perfil, departamento } = req.body;
 
   try {
     const client = await pool.connect();
@@ -144,8 +157,8 @@ async function updateUser(req, res) {
     }
 
     // Verificar se o perfil existe
-    query = "SELECT COUNT(*) as count FROM Profile WHERE id = $1";
-    result = await client.query(query, [profile_id]);
+    query = "SELECT COUNT(*) as count FROM perfil WHERE id = $1";
+    result = await client.query(query, [perfil]);
 
     if (result.rows[0].count === 0) {
       client.release();
@@ -158,11 +171,36 @@ async function updateUser(req, res) {
       SET username = $1,
           name = $2,
           email = $3,
-          profile_id = $4,
+          perfil = $4,
+          departamento = $5,
           updatedAt = DEFAULT
-      WHERE id = $5
+      WHERE id = $6
     `;
-    result = await client.query(query, [username, name, email, profile_id, id]);
+    result = await client.query(query, [
+      username,
+      name,
+      email,
+      perfil,
+      departamento,
+      id,
+    ]);
+
+    // Atualizar ou inserir na tabela Utilizador_Departamento
+    if (departamento) {
+      query = `
+        INSERT INTO Utilizador_Departamento (utilizador_id, departamento_id)
+        VALUES ($1, $2)
+        ON CONFLICT (utilizador_id, departamento_id)
+        DO UPDATE SET departamento_id = EXCLUDED.departamento_id
+      `;
+      await client.query(query, [id, departamento]);
+    } else {
+      query = `
+        DELETE FROM Utilizador_Departamento
+        WHERE utilizador_id = $1
+      `;
+      await client.query(query, [id]);
+    }
 
     client.release();
 
@@ -211,23 +249,35 @@ async function deleteUser(req, res) {
   try {
     const client = await pool.connect();
 
+    // Iniciar uma transação
+    await client.query("BEGIN");
+
     // Verificar se o utilizador existe
     let query = "SELECT COUNT(*) as count FROM Utilizador WHERE id = $1";
     let result = await client.query(query, [id]);
 
     if (result.rows[0].count === 0) {
+      await client.query("ROLLBACK");
       client.release();
       return res.status(404).json({ error: "Utilizador não encontrado" });
     }
 
-    // Deletar o utilizador
-    query = "DELETE FROM Utilizador WHERE id = $1";
-    result = await client.query(query, [id]);
+    // Deletar o utilizador da tabela Utilizador_Departamento
+    query = "DELETE FROM Utilizador_Departamento WHERE utilizador_id = $1";
+    await client.query(query, [id]);
 
+    // Deletar o utilizador da tabela Utilizador
+    query = "DELETE FROM Utilizador WHERE id = $1";
+    await client.query(query, [id]);
+
+    // Commitar a transação
+    await client.query("COMMIT");
     client.release();
     res.status(200).send("Utilizador deletado com sucesso.");
   } catch (error) {
     console.error("Erro ao deletar Utilizador:", error);
+    await client.query("ROLLBACK");
+    client.release();
     res.status(500).json({ error: "Erro ao deletar Utilizador" });
   }
 }

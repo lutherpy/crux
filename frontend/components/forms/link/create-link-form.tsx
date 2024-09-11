@@ -84,14 +84,40 @@ export default function CreateLinkForm() {
       });
       router.push('/dashboard/link');
     } catch (err) {
-      const errorMessage =
-        err instanceof Error && err.message
-          ? err.message
-          : 'An unknown error occurred.';
-      toast({
-        title: 'Erro ao adicionar aplicação.',
-        description: errorMessage
-      });
+      if (
+        typeof err === 'object' &&
+        err !== null &&
+        'response' in err &&
+        typeof (err as any).response === 'object' &&
+        (err as any).response !== null &&
+        'data' in (err as any).response &&
+        typeof (err as any).response.data === 'object' &&
+        (err as any).response.data !== null &&
+        'error' in (err as any).response.data
+      ) {
+        const backendErrorMessage = (err as any).response.data.error;
+        toast({
+          title: 'Erro ao adicionar o link.',
+          description: (
+            <pre>
+              <code>Erro: {backendErrorMessage}</code>
+            </pre>
+          )
+        });
+      } else {
+        const errorMessage =
+          err instanceof Error && err.message
+            ? err.message
+            : 'An unknown error occurred.';
+        toast({
+          title: 'Failed to add link.',
+          description: (
+            <pre>
+              <code>Erro: {errorMessage}</code>
+            </pre>
+          )
+        });
+      }
     } finally {
       setLoading(false);
     }

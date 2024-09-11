@@ -131,8 +131,8 @@ export default function CreateUserForm() {
         toast({
           title: 'Erro ao adicionar o utilizador.',
           description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">Erro: {backendErrorMessage}</code>
+            <pre>
+              <code>Erro: {backendErrorMessage}</code>
             </pre>
           )
         });
@@ -144,8 +144,8 @@ export default function CreateUserForm() {
         toast({
           title: 'Failed to add user.',
           description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">Erro: {errorMessage}</code>
+            <pre>
+              <code>Erro: {errorMessage}</code>
             </pre>
           )
         });

@@ -7,6 +7,7 @@ import {
   CircuitBoardIcon,
   Command,
   CreditCard,
+  Link,
   File,
   FileText,
   HelpCircle,
@@ -35,6 +36,7 @@ import {
 export type Icon = LucideIcon;
 
 export const Icons = {
+  link: Link,
   dashboard: LayoutDashboardIcon,
   logo: Command,
   login: LogIn,

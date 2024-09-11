@@ -16,6 +16,7 @@ import {
 import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import LinkNext from 'next/link';
+import { ExternalLinkIcon } from 'lucide-react';
 
 interface LinkColumnsProps {
   onDelete: (linkId: number) => void;
@@ -68,7 +69,7 @@ export const columns = ({
     cell: ({ row }) => {
       return (
         <LinkNext href={row.original.link} target="_blank" passHref>
-          <Trash className="h-4 w-4" />
+          <ExternalLinkIcon className="h-4 w-4" />
         </LinkNext>
       );
     }

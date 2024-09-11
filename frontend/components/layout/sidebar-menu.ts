@@ -23,7 +23,7 @@ export const navItems: NavItem[] = [
     {
       title: 'Links',
       href: '/dashboard/link',
-      icon: 'post',
+      icon: 'link',
       label: 'link',  
     
     },

@@ -20,6 +20,13 @@ export const navItems: NavItem[] = [
       label: 'user',  
     
     },
+    {
+      title: 'Links',
+      href: '/dashboard/link',
+      icon: 'post',
+      label: 'link',  
+    
+    },
   ];
 
     /*{

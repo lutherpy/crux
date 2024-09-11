@@ -23,7 +23,7 @@ async function postLink(req, res) {
   try {
     const client = await pool.connect();
 
-    // Verificar se a aplicação já existe
+    // Verificar se o link já existe
     let query = "SELECT COUNT(*) as count FROM link WHERE name = $1";
     let result = await client.query(query, [name]);
 
@@ -32,30 +32,59 @@ async function postLink(req, res) {
       return res.status(400).json({ error: "O Link já existe" });
     }
 
-    // Inserir a nova aplicação
+    // Inserir o link e obter o id
     query = `
-      INSERT INTO link (name, servico, link, departamento, createdAt, updatedAt)
-      VALUES ($1, $2, $3, $4, DEFAULT, DEFAULT)
+      INSERT INTO link (name, servico, link, createdAt, updatedAt)
+      VALUES ($1, $2, $3, DEFAULT, DEFAULT)
       RETURNING id
     `;
-    result = await client.query(query, [name, servico, link, departamento]);
-
+    result = await client.query(query, [name, servico, link]);
     const linkId = result.rows[0].id;
+
+    // Verificar se o departamento existe
+    query = "SELECT COUNT(*) as count FROM departamentos_gerais WHERE id = $1";
+    result = await client.query(query, [departamento]);
+
+    if (result.rows[0].count === 0) {
+      client.release();
+      return res.status(400).json({ error: "O Departamento não existe" });
+    }
+
+    // Inserir a relação na tabela departamento_links
+    query = `
+      INSERT INTO departamento_links (departamento_id, link_id)
+      VALUES ($1, $2)
+    `;
+    await client.query(query, [departamento, linkId]);
 
     client.release();
     res.status(201).send("Link adicionado com sucesso.");
   } catch (error) {
-    console.error("Erro ao adicionar a Link:", error);
+    console.error("Erro ao adicionar o Link:", error);
     res.status(500).json({ error: "Erro ao adicionar Link" });
   }
 }
+
+// GET Links
 // GET Links
 async function getLinks(req, res) {
   try {
     const client = await pool.connect();
-    const result = await client.query(
-      "SELECT l.id AS id, l.link, l.name AS name, l.servico AS servico, l.departamento AS departamento, d.name AS departamento_geral FROM link l JOIN departamentos_gerais d ON l.departamento = d.id;"
-    );
+
+    // Consulta ajustada com JOINs
+    const query = `
+      SELECT 
+        l.id AS id, 
+        l.link, 
+        l.name AS name, 
+        l.servico AS servico, 
+        d.name AS departamento_geral
+      FROM link l
+      JOIN departamento_links dl ON l.id = dl.link_id
+      JOIN departamentos_gerais d ON dl.departamento_id = d.id;
+    `;
+
+    const result = await client.query(query);
     client.release();
     res.status(200).json(result.rows);
   } catch (error) {
@@ -65,20 +94,32 @@ async function getLinks(req, res) {
 }
 
 // GET Link BY ID
+// GET Link BY ID
 async function getLinkById(req, res) {
   const linkId = req.params.id;
 
   try {
     const client = await pool.connect();
-    const query =
-      "SELECT l.id AS id, l.name AS name, l.servico AS servico, l.link, l.departamento AS departamento, d.name AS departamento_geral FROM link l JOIN departamentos_gerais d ON l.departamento = d.id WHERE l.id = $1;";
+
+    // Consulta ajustada com JOINs
+    const query = `
+      SELECT 
+        l.id AS id, 
+        l.name AS name, 
+        l.servico AS servico, 
+        l.link, 
+        d.name AS departamento_geral
+      FROM link l
+      JOIN departamento_links dl ON l.id = dl.link_id
+      JOIN departamentos_gerais d ON dl.departamento_id = d.id
+      WHERE l.id = $1;
+    `;
 
     const result = await client.query(query, [linkId]);
-
     client.release();
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Link não encontrada" });
+      return res.status(404).json({ error: "Link não encontrado" });
     }
 
     res.status(200).json(result.rows[0]);
@@ -104,7 +145,7 @@ async function updateLink(req, res) {
 
     // Verificar se o nome já existe para outra aplicação
     let query =
-      "SELECT COUNT(*) as count FROM Link WHERE name = $1 AND id != $2";
+      "SELECT COUNT(*) as count FROM link WHERE name = $1 AND id != $2";
     let result = await client.query(query, [name, id]);
 
     if (result.rows[0].count > 0) {
@@ -113,23 +154,48 @@ async function updateLink(req, res) {
       });
     }
 
-    // Atualizar a aplicação
+    // Atualizar o link na tabela Link
     query = `
-      UPDATE Link
+      UPDATE link
       SET name = $1,
-       servico = $2,
-       link = $3,
-       departamento = $4, 
+          servico = $2,
+          link = $3,
           updatedAt = DEFAULT
-      WHERE id = $5
+      WHERE id = $4
     `;
-    result = await client.query(query, [name, servico, link, departamento, id]);
+    result = await client.query(query, [name, servico, link, id]);
 
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Link não encontrado." });
     }
 
-    res.status(200).send("Link atualizado com sucesso.");
+    // Atualizar a relação na tabela departamento_links
+    // Verificar se a relação já existe
+    query = `
+      SELECT COUNT(*) as count 
+      FROM departamento_links 
+      WHERE link_id = $1
+    `;
+    result = await client.query(query, [id]);
+
+    if (result.rows[0].count > 0) {
+      // Atualizar a relação existente
+      query = `
+        UPDATE departamento_links
+        SET departamento_id = $1
+        WHERE link_id = $2
+      `;
+      await client.query(query, [departamento, id]);
+    } else {
+      // Inserir nova relação
+      query = `
+        INSERT INTO departamento_links (departamento_id, link_id)
+        VALUES ($1, $2)
+      `;
+      await client.query(query, [departamento, id]);
+    }
+
+    res.status(200).send("Link e relação atualizados com sucesso.");
   } catch (error) {
     console.error("Erro ao atualizar Link:", error);
     res.status(500).json({ error: "Erro ao atualizar Link" });
@@ -149,23 +215,23 @@ async function deleteLink(req, res) {
   try {
     client = await pool.connect();
 
-    // Verificar se a aplicação existe
-    let query = "SELECT COUNT(*) as count FROM Link WHERE id = $1";
+    // Verificar se o link existe
+    let query = "SELECT COUNT(*) as count FROM link WHERE id = $1";
     let result = await client.query(query, [id]);
 
     if (result.rows[0].count === 0) {
       return res.status(404).json({ error: "Link não encontrado" });
     }
 
-    // Deletar registros relacionados na tabela link_servidor
-    query = "DELETE FROM link WHERE id = $1";
+    // Deletar registros relacionados na tabela departamento_links
+    query = "DELETE FROM departamento_links WHERE link_id = $1";
     await client.query(query, [id]);
 
-    // Deletar a aplicação
-    query = "DELETE FROM Link WHERE id = $1";
+    // Deletar o link
+    query = "DELETE FROM link WHERE id = $1";
     const deleteResult = await client.query(query, [id]);
 
-    // Verificar se a aplicação foi deletada
+    // Verificar se o link foi deletado
     if (deleteResult.rowCount > 0) {
       res.status(200).send("Link deletado com sucesso.");
     } else {

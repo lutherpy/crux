@@ -16,7 +16,7 @@ router.post("/", validateLink, postLink);
 router.get("/", getLinks);
 router.get("/:id", getLinkById);
 router.put("/:id", updateLink);
-router.delete("/:id", deleteLinks);
-router.delete("/", deleteLink);
+router.delete("/:id", deleteLink);
+router.delete("/", deleteLinks);
 
 module.exports = router;

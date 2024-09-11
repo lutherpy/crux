@@ -15,44 +15,63 @@ import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { toast } from '@/components/ui/use-toast';
 import GithubSignInButton from '../github-auth-button';
 
-// Updated schema to include username and password
 const formSchema = z.object({
-  username: z.string().min(1, { message: 'Username is required' }),
+  username: z.string().min(1, { message: 'Username é obrigatório' }),
   password: z
     .string()
-    .min(3, { message: 'Password must be at least 6 characters' })
+    .min(3, { message: 'A senha deve ter no mínimo 6 caracteres' })
 });
 
 type UserFormValue = z.infer<typeof formSchema>;
 
 export default function UserAuthForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard';
   const [loading, setLoading] = useState(false);
-  const defaultValues = {
-    username: 'lutherpy',
-    password: '123'
-  };
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
-    defaultValues
+    defaultValues: {
+      username: 'lutherpy',
+      password: '123'
+    }
   });
 
   const onSubmit = async (data: UserFormValue) => {
-    setLoading(true); // Set loading state to true
+    setLoading(true);
     try {
-      await signIn('credentials', {
+      const res = await signIn('credentials', {
         username: data.username,
         password: data.password,
-        callbackUrl: callbackUrl ?? '/dashboard'
+        redirect: false, // Não redirecionar automaticamente
+        callbackUrl
       });
+
+      if (res?.error) {
+        toast({
+          title: 'Erro ao fazer login',
+          //description: res.error + ' ' + 'Credenciais inválidas',
+          description: 'Credenciais inválidas',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Login bem-sucedido',
+          description: 'Redirecionando...'
+        });
+        window.location.href = callbackUrl; // Redireciona manualmente
+      }
     } catch (error) {
-      console.error('Sign in error:', error);
-      alert('erro no login');
+      console.error('Erro no login:', error);
+      toast({
+        title: 'Erro inesperado',
+        description: 'Ocorreu um erro ao tentar fazer login.',
+        variant: 'destructive'
+      });
     } finally {
-      setLoading(false); // Set loading state back to false
+      setLoading(false);
     }
   };
 
@@ -72,7 +91,7 @@ export default function UserAuthForm() {
                 <FormControl>
                   <Input
                     type="text"
-                    placeholder="Enter your username..."
+                    placeholder="Insira o username..."
                     disabled={loading}
                     {...field}
                   />
@@ -90,7 +109,7 @@ export default function UserAuthForm() {
                 <FormControl>
                   <Input
                     type="password"
-                    placeholder="Enter your password..."
+                    placeholder="Insira a palavra-passe..."
                     disabled={loading}
                     {...field}
                   />
@@ -99,22 +118,11 @@ export default function UserAuthForm() {
               </FormItem>
             )}
           />
-          <Button disabled={loading} className="ml-auto w-full" type="submit">
-            Fazer Login
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>
       </Form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-      </div>
-      <GithubSignInButton />
     </>
   );
 }

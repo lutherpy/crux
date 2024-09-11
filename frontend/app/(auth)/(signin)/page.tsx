@@ -8,6 +8,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { checkIsAuthenticated } from '@/auth/checkIsAuthenticated';
 import { redirect } from 'next/navigation';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'Authentication',
@@ -32,7 +33,6 @@ export default async function AuthenticationPage() {
         Login
       </Link>
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
-        <div className="absolute inset-0 bg-zinc-900" />
         <div className="relative z-20 flex items-center text-lg font-medium">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -46,14 +46,22 @@ export default async function AuthenticationPage() {
           >
             <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
           </svg>
-          Logo
+          SIRIUS V2
         </div>
         <div className="relative z-20 mt-auto">
+          <Image
+            src="/login.png" // Caminho da sua imagem
+            alt="Descrição da Imagem"
+            layout="intrinsic" // Mantém a imagem no tamanho real
+            width={800} // Substitua com a largura real da imagem
+            height={800} // Substitua com a altura real da imagem
+            className="rounded-lg" // Estilo opcional
+            priority // Carrega a imagem com prioridade
+          />
           <blockquote className="space-y-2">
             <p className="text-lg">
-              &ldquo;This library has saved me countless hours of work and
-              helped me deliver stunning designs to my clients faster than ever
-              before.&rdquo;
+              O Sirius V2 é uma solução abrangente que centraliza e organiza as
+              aplicações e links do Departamento.
             </p>
             <footer className="text-sm">Sofia Davis</footer>
           </blockquote>
@@ -66,27 +74,11 @@ export default async function AuthenticationPage() {
               Fazer Login
             </h1>
             <p className="text-sm text-muted-foreground">
-              Enter your email below to create your account
+              Insira as suas credenciais ou selecione outro método para fazer
+              Login.
             </p>
           </div>
           <UserAuthForm />
-          <p className="px-8 text-center text-sm text-muted-foreground">
-            By clicking continue, you agree to our{' '}
-            <Link
-              href="/terms"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link
-              href="/privacy"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Privacy Policy
-            </Link>
-            .
-          </p>
         </div>
       </div>
     </div>

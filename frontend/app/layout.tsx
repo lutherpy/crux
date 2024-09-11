@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'CRUX',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  description: 'Gestão de Aplicações'
 };
 
 export default async function RootLayout({

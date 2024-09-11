@@ -90,10 +90,11 @@ export const UserClient: React.FC<UserClientProps> = () => {
           ) : (
             <Plus className="mr-2 h-4 w-4" />
           )}
-          {loading ? 'Adding...' : 'Add New'}
+          {loading ? 'Adding...' : 'Adicionar Utilizador'}
         </Button>
       </div>
       <Separator className="mt-24" />
+
       <DataTable
         searchKey="name"
         columns={columns({

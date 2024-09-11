@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { App } from '@/types/app';
+import { Link } from '@/types/link';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash } from 'lucide-react';
 import {
@@ -15,18 +15,17 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
+import LinkNext from 'next/link';
 
-interface AppColumnsProps {
-  onDelete: (appId: number) => void;
-  onEdit: (appId: number) => void;
+interface LinkColumnsProps {
+  onDelete: (linkId: number) => void;
+  onEdit: (linkId: number) => void;
 }
 
 export const columns = ({
   onDelete,
   onEdit
-}: AppColumnsProps): ColumnDef<App>[] => [
+}: LinkColumnsProps): ColumnDef<Link>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -48,47 +47,48 @@ export const columns = ({
   },
   {
     accessorKey: 'id',
-    header: 'ID',
-    cell: ({ row }) => {
-      return (
-        <Link href={`/user/${row.original.id}`} passHref>
-          {row.original.name}
-        </Link>
-      );
-    }
+    header: 'ID'
   },
   {
     accessorKey: 'name',
-    header: 'Nome da Aplicação'
+    header: 'Nome do Link'
   },
 
   {
-    accessorKey: 'descricao',
-    header: 'Descrição'
+    accessorKey: 'servico',
+    header: 'Serviço'
   },
   {
-    accessorKey: 'servidor_name',
-    header: 'Servidor'
+    accessorKey: 'departamento_geral',
+    header: 'Departamento'
   },
   {
-    accessorKey: 'departamento_name',
-    header: 'Divisão'
+    accessorKey: 'link',
+    header: 'Hiperligação',
+    cell: ({ row }) => {
+      return (
+        <LinkNext href={row.original.link} target="_blank" passHref>
+          <Trash className="h-4 w-4" />
+        </LinkNext>
+      );
+    }
   },
+
   {
     id: 'actions',
     header: 'Actions',
     cell: ({ row }) => {
-      const app = row.original;
+      const link = row.original;
       const [open, setOpen] = useState(false);
 
       const handleDelete = () => {
         setOpen(false);
-        onDelete(app.id);
+        onDelete(link.id);
       };
 
       return (
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => onEdit(app.id)}>
+          <Button variant="outline" onClick={() => onEdit(link.id)}>
             <Pencil className="h-4 w-4" />
           </Button>
 
@@ -105,7 +105,7 @@ export const columns = ({
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   This action cannot be undone. This will permanently delete the
-                  app.
+                  link.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

@@ -14,6 +14,9 @@ const loginRoutes = require("./app/routes/login/LoginRoutes");
 const aplicacaoRoutes = require("./app/routes/aplicacao/AplicacaoRoutes");
 const servidorRoutes = require("./app/routes/servidor/ServidorRoutes");
 const departamentoRoutes = require("./app/routes/departamento/DepartamentoRoutes");
+const linkRoutes = require("./app/routes/link/LinkRoutes");
+const departamentosGeraisRoutes = require("./app/routes/departamentosGerais/DepartamentosGeraisRoutes");
+
 // Permitir o acesso de diferentes servidores
 app.use(cors());
 app.use(express.json());
@@ -43,6 +46,8 @@ app.use("/api/login", loginRoutes);
 app.use("/api/aplicacao", aplicacaoRoutes);
 app.use("/api/servidor", servidorRoutes);
 app.use("/api/departamento", departamentoRoutes);
+app.use("/api/link", linkRoutes);
+app.use("/api/deps", departamentosGeraisRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

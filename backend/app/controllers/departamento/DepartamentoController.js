@@ -69,7 +69,7 @@ async function getDepartamentoById(req, res) {
 
   try {
     const client = await pool.connect();
-    const query = "SELECT  id, name WHERE a.id = $1";
+    const query = "SELECT  id, name FROM departamento WHERE id = $1";
     const result = await client.query(query, [departamentoId]);
 
     client.release();

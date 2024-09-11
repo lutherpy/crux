@@ -77,7 +77,8 @@ async function getLinks(req, res) {
         l.id AS id, 
         l.link, 
         l.name AS name, 
-        l.servico AS servico, 
+        l.servico AS servico,
+        l.departamento AS departamento,  
         d.name AS departamento_geral
       FROM link l
       JOIN departamento_links dl ON l.id = dl.link_id
@@ -94,7 +95,6 @@ async function getLinks(req, res) {
 }
 
 // GET Link BY ID
-// GET Link BY ID
 async function getLinkById(req, res) {
   const linkId = req.params.id;
 
@@ -108,6 +108,7 @@ async function getLinkById(req, res) {
         l.name AS name, 
         l.servico AS servico, 
         l.link, 
+        l.departamento AS departamento,
         d.name AS departamento_geral
       FROM link l
       JOIN departamento_links dl ON l.id = dl.link_id
@@ -160,10 +161,11 @@ async function updateLink(req, res) {
       SET name = $1,
           servico = $2,
           link = $3,
+          departamento = $4,
           updatedAt = DEFAULT
-      WHERE id = $4
+      WHERE id = $5
     `;
-    result = await client.query(query, [name, servico, link, id]);
+    result = await client.query(query, [name, servico, link, departamento, id]);
 
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Link não encontrado." });

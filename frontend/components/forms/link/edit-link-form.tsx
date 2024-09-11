@@ -27,7 +27,6 @@ import { LinkService } from '@/service/LinkService';
 import { toast } from '@/components/ui/use-toast';
 import { Departamento_Geral_Service } from '@/service/Departamento_Geral_Service';
 import { Departamento } from '@/types/departamento';
-import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 
 const FormSchema = z.object({
@@ -221,12 +220,12 @@ export default function EditLinkForm() {
                     </SelectTrigger>
                     <SelectContent>
                       {deps.length > 0 ? (
-                        deps.map((departamento_geral) => (
+                        deps.map((departamento) => (
                           <SelectItem
-                            key={departamento_geral.id}
-                            value={departamento_geral.id.toString()}
+                            key={departamento.id}
+                            value={departamento.id.toString()}
                           >
-                            {departamento_geral.name}
+                            {departamento.name}
                           </SelectItem>
                         ))
                       ) : (

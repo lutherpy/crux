@@ -265,7 +265,7 @@ export default function CreateAppForm() {
             )}
           />
           <Button type="submit" disabled={loading}>
-            {loading ? 'Adicionando...' : 'Adicionar Aplicação'}
+            {loading ? 'Adicionando...' : 'Adicionar'}
           </Button>
 
           <Link href="/dashboard/apps" passHref>

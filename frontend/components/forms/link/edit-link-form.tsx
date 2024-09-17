@@ -242,7 +242,7 @@ export default function EditLinkForm() {
           />
 
           <Button type="submit" disabled={loading}>
-            {loading ? 'Adicionando...' : 'Adicionar Aplicação'}
+            {loading ? 'A actualizar...' : 'Actualizar'}
           </Button>
           <Link href="/dashboard/link" passHref>
             <Button variant={'outline'} disabled={loading} className="ml-5">

@@ -68,14 +68,29 @@ export default function EditUserForm() {
         setLoading(true);
         const userService = new UserService();
         const response = await userService.buscarPorId(Number(userId));
-        const user = response.data;
-        form.reset({
-          name: user.name,
-          username: user.username,
-          email: user.email,
-          perfil: user.perfil,
-          departamento: user.departamento
-        });
+
+        // Imprimir a resposta da API no console
+        console.log('API Response:', response);
+
+        // Verifique se a resposta e os dados são válidos
+        if (response && response.data) {
+          const user = response.data;
+
+          // Verifique se o objeto user tem as propriedades esperadas
+          if (user && user.name !== undefined) {
+            form.reset({
+              name: user.name,
+              username: user.username,
+              email: user.email,
+              perfil: user.perfil,
+              departamento: user.departamento
+            });
+          } else {
+            throw new Error('User data is missing expected properties.');
+          }
+        } else {
+          throw new Error('Failed to fetch user data.');
+        }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'An unknown error occurred.';
@@ -83,6 +98,7 @@ export default function EditUserForm() {
           title: 'Failed to load user data.',
           description: errorMessage
         });
+        console.log(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -314,7 +330,7 @@ export default function EditUserForm() {
             )}
           />
           <Button type="submit" disabled={loading}>
-            {loading ? 'Adicionando...' : 'Adicionar Utilizador'}
+            {loading ? 'A actualizar...' : 'Actualizar'}
           </Button>
 
           <Link href="/dashboard/user" passHref>

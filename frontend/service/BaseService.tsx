@@ -1,81 +1,152 @@
-import axios, { AxiosInstance } from 'axios';
-import { useRouter } from 'next/router';
+import axios from 'axios';
+import { getSession } from 'next-auth/react';
+import { Session } from 'next-auth'; // Importar a interface Session
+
+// Estender a interface Session para incluir accessToken
+interface ExtendedSession extends Session {
+  accessToken?: string;
+}
 
 export const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL_API
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL_API
 });
 
 // Interceptor para requisições
 axiosInstance.interceptors.request.use(
-    (config) => {
-        const username = process.env.NEXT_PUBLIC_BASIC_AUTH_USER;
-        const password = process.env.NEXT_PUBLIC_BASIC_AUTH_PASS;
+  async (config) => {
+    // Obter o token da sessão
+    const session = (await getSession()) as ExtendedSession;
+    const token = session?.accessToken;
 
-        if (username && password) {
-            const authHeader = `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`;
-            config.headers.Authorization = authHeader;
-        }
-
-        //console.log('Request:', config);
-        return config;
-    },
-    (error) => {
-        console.error('Request Error:', error);
-        return Promise.reject(error);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.error('Token JWT não encontrado na sessão.');
     }
+
+    return config;
+  },
+  (error) => {
+    console.error('Request Error:', error);
+    return Promise.reject(error);
+  }
 );
 
 export class BaseService {
-    url: string;
+  url: string;
 
-    constructor(url: string) {
-        this.url = url;
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  async listarTodos() {
+    try {
+      const response = await axiosInstance.get(this.url);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          'Erro ao listar todos:',
+          error.response ? error.response.data : error.message
+        );
+      } else {
+        console.error('Erro desconhecido ao listar todos:', error);
+      }
+      throw error; // Re-throw the error if you want it to propagate
     }
+  }
 
-    listarTodos() {
-        return axiosInstance
-            .get(this.url)
-            .then((response) => {
-                return response.data;
-            })
-            .catch((error) => {
-                console.error('Erro ao listar todos:', error.response ? error.response.data : error.message);
-                throw error; // Re-throw the error if you want it to propagate
-            });
+  async buscarPorId(id: number) {
+    try {
+      const response = await axiosInstance.get(`${this.url}/${id}`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          'Erro ao buscar por ID:',
+          error.response ? error.response.data : error.message
+        );
+      } else {
+        console.error('Erro desconhecido ao buscar por ID:', error);
+      }
+      throw error;
     }
+  }
 
-    buscarPorId(id: number) {
-        return axiosInstance.get(`${this.url}/${id}`);
+  async inserir(objeto: any) {
+    console.log('Request body:', objeto); // Log do corpo do request
+    try {
+      const response = await axiosInstance.post(this.url, objeto);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          'Erro ao inserir:',
+          error.response ? error.response.data : error.message
+        );
+      } else {
+        console.error('Erro desconhecido ao inserir:', error);
+      }
+      throw error;
     }
+  }
 
-    inserir(objeto: any) {
-        console.log('Request body:', objeto); // Log do corpo do request
-        return axiosInstance
-            .post(this.url, objeto)
-            .then((response) => {
-                return response.data;
-            })
-            .catch((error) => {
-                console.error('Erro ao inserir:', error.response ? error.response.data : error.message);
-                throw error; // Re-throw the error if you want it to propagate
-            });
+  async alterar(objeto: any) {
+    console.log('Request enviado para alterar:', objeto);
+    try {
+      const response = await axiosInstance.put(
+        `${this.url}/${objeto.id}`,
+        objeto
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          'Erro ao alterar:',
+          error.response ? error.response.data : error.message
+        );
+      } else {
+        console.error('Erro desconhecido ao alterar:', error);
+      }
+      throw error;
     }
+  }
 
-    alterar(objeto: any) {
-        // Logando o request antes de enviar
-        console.log('Request enviado para alterar:', objeto);
-
-        return axiosInstance.put(`${this.url}/${objeto.id}`, objeto);
+  async alterarPass(objeto: any) {
+    console.log('Request enviado para alterar a senha:', objeto);
+    try {
+      const response = await axiosInstance.put(
+        `${this.url}/pass/${objeto.id}`,
+        objeto
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          'Erro ao alterar a senha:',
+          error.response ? error.response.data : error.message
+        );
+      } else {
+        console.error('Erro desconhecido ao alterar a senha:', error);
+      }
+      throw error;
     }
+  }
 
-    alterarPass(objeto: any) {
-        // Logando o request antes de enviar
-        console.log('Request enviado para alterar:', objeto);
-
-        return axiosInstance.put(`${this.url}/pass/${objeto.id}`, objeto);
+  async excluir(id: number) {
+    try {
+      const response = await axiosInstance.delete(`${this.url}/${id}`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          'Erro ao excluir:',
+          error.response ? error.response.data : error.message
+        );
+      } else {
+        console.error('Erro desconhecido ao excluir:', error);
+      }
+      throw error;
     }
-
-    excluir(id: number) {
-        return axiosInstance.delete(`${this.url}/${id}`);
-    }
+  }
 }

@@ -84,11 +84,44 @@ async function postUsers(req, res) {
 
 // GET USERS
 async function getUsers(req, res) {
+  const userDepartamento = req.user.departamento;
+  const userPerfil = req.user.perfil; // Assumindo que o perfil também está no JWT
+
   try {
     const client = await pool.connect();
-    const result = await client.query(
-      "SELECT u.id AS id, u.name AS name, u.username AS username, u.email AS email, u.password AS password, u.departamento AS departamento_id, u.perfil AS perfil_id, d.name AS departamento, p.name AS perfil FROM utilizador u LEFT JOIN departamento d ON u.departamento = d.id LEFT JOIN perfil p ON u.perfil = p.id;"
-    );
+
+    // Filtrar por departamento apenas se o perfil for USER
+    let query;
+    let params;
+
+    if (userPerfil === 1) {
+      // admin
+      query = `
+        SELECT u.id AS id, u.name AS name, u.username AS username, u.email AS email, u.password AS password, u.departamento AS departamento_id, u.perfil AS perfil_id, d.name AS departamento, p.name AS perfil 
+        FROM utilizador u 
+        LEFT JOIN departamento d ON u.departamento = d.id 
+        LEFT JOIN perfil p ON u.perfil = p.id;
+      `;
+      params = [];
+    } else if (userPerfil === 2) {
+      // user
+      query = `
+        SELECT u.id AS id, u.name AS name, u.username AS username, u.email AS email, u.password AS password, u.departamento AS departamento_id, u.perfil AS perfil_id, d.name AS departamento, p.name AS perfil 
+        FROM utilizador u 
+        LEFT JOIN departamento d ON u.departamento = d.id 
+        LEFT JOIN perfil p ON u.perfil = p.id 
+        WHERE u.departamento = $1;
+      `;
+      params = [userDepartamento];
+    } else {
+      // Se o perfil não for reconhecido
+      client.release();
+      return res
+        .status(403)
+        .json({ error: "Perfil do usuário não autorizado." });
+    }
+
+    const result = await client.query(query, params);
     client.release();
     res.status(200).json(result.rows);
   } catch (error) {
@@ -191,7 +224,15 @@ async function updateUser(req, res) {
         INSERT INTO Utilizador_Departamento (utilizador_id, departamento_id)
         VALUES ($1, $2)
         ON CONFLICT (utilizador_id, departamento_id)
-        DO UPDATE SET departamento_id = EXCLUDED.departamento_id
+        DO NOTHING
+      `;
+      await client.query(query, [id, departamento]);
+
+      // Remover qualquer associação existente do usuário ao departamento
+      query = `
+        DELETE FROM Utilizador_Departamento
+        WHERE utilizador_id = $1
+        AND departamento_id != $2
       `;
       await client.query(query, [id, departamento]);
     } else {

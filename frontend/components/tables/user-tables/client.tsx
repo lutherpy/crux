@@ -90,7 +90,7 @@ export const UserClient: React.FC<UserClientProps> = () => {
           ) : (
             <Plus className="mr-2 h-4 w-4" />
           )}
-          {loading ? 'Adding...' : 'Adicionar Utilizador'}
+          {loading ? 'A adicionar...' : 'Adicionar'}
         </Button>
       </div>
       <Separator className="mt-24" />

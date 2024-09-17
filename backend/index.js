@@ -1,11 +1,7 @@
 const express = require("express");
-const { exec } = require("child_process");
 const cors = require("cors");
-const basicAuth = require("basic-auth");
-
+const authJWT = require("./auth"); // Importar o middleware JWT
 const app = express();
-
-// Executar o script db/script.js
 
 // Rotas
 const userRoutes = require("./app/routes/user/UsersRoutes");
@@ -17,32 +13,18 @@ const departamentoRoutes = require("./app/routes/departamento/DepartamentoRoutes
 const linkRoutes = require("./app/routes/link/LinkRoutes");
 const departamentosGeraisRoutes = require("./app/routes/departamentosGerais/DepartamentosGeraisRoutes");
 
-// Permitir o acesso de diferentes servidores
+// Aplicar middlewares
 app.use(cors());
 app.use(express.json());
 
-// Middleware de autenticação básica
-const auth = (req, res, next) => {
-  const user = basicAuth(req);
-  if (
-    user &&
-    user.name === process.env.BASIC_AUTH_USER &&
-    user.pass === process.env.BASIC_AUTH_PASS
-  ) {
-    return next();
-  } else {
-    res.set("WWW-Authenticate", 'Basic realm="401"');
-    res.status(401).send("Authentication required.");
-  }
-};
+// Aplicar JWT a todas as rotas, exceto login
+app.use("/api/login", loginRoutes); // Login não precisa de autenticação JWT
 
-// Aplicar o middleware de autenticação a todas as rotas
-app.use(auth);
+// Aplicar JWT a todas as outras rotas
+app.use(authJWT);
 
-// Usar as rotas
 app.use("/api/users", userRoutes);
 app.use("/api/profiles", profileRoutes);
-app.use("/api/login", loginRoutes);
 app.use("/api/aplicacao", aplicacaoRoutes);
 app.use("/api/servidor", servidorRoutes);
 app.use("/api/departamento", departamentoRoutes);

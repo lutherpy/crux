@@ -34,19 +34,19 @@ async function postAplicacoes(req, res) {
     // Inserir a nova aplicação
     query = `
       INSERT INTO aplicacao (name, descricao, departamento, servidor, createdAt, updatedAt)
-      VALUES ($1, $2, $3, $4, DEFAULT, DEFAULT)
-      RETURNING id
+      VALUES ($1, $2, $3, $4, DEFAULT, DEFAULT) RETURNING id
     `;
     result = await client.query(query, [
       name,
       descricao,
       departamento,
-      servidor,
+      servidor || null, // Tratar servidor como null se não for fornecido
     ]);
 
+    // Obter o ID da aplicação recém-adicionada
     const aplicacaoId = result.rows[0].id;
 
-    // Associar a aplicação a um único servidor
+    // Associar a aplicação a servidores na tabela aplicacao_servidor
     if (servidor) {
       query = `
         INSERT INTO aplicacao_servidor (aplicacao_id, servidor_id)
@@ -62,13 +62,50 @@ async function postAplicacoes(req, res) {
     res.status(500).json({ error: "Erro ao adicionar Aplicação" });
   }
 }
+
 // GET Aplicacoes
 async function getAplicacoes(req, res) {
+  const userDepartamento = req.user.departamento;
+  const userPerfil = req.user.perfil; // Assumindo que o perfil também está no JWT
+
   try {
     const client = await pool.connect();
-    const result = await client.query(
-      "SELECT a.id as id, a.name AS name, a.descricao, a.departamento, a.servidor AS servidor, d.name AS departamento_name, s.name AS servidor_name FROM aplicacao a LEFT JOIN departamento d ON a.departamento = d.id LEFT JOIN aplicacao_servidor aps ON a.id = aps.aplicacao_id LEFT JOIN servidor s ON aps.servidor_id = s.id ORDER BY a.id, s.id desc"
-    );
+
+    let query;
+    let params;
+
+    if (userPerfil === 1) {
+      // admin
+      query = `
+        SELECT a.id as id, a.name AS name, a.descricao, a.departamento, a.servidor AS servidor, d.name AS departamento_name, s.name AS servidor_name 
+        FROM aplicacao a 
+        LEFT JOIN departamento d ON a.departamento = d.id 
+        LEFT JOIN aplicacao_servidor aps ON a.id = aps.aplicacao_id 
+        LEFT JOIN servidor s ON aps.servidor_id = s.id 
+        ORDER BY a.id DESC
+      `;
+      params = [];
+    } else if (userPerfil === 2) {
+      // user
+      query = `
+        SELECT a.id as id, a.name AS name, a.descricao, a.departamento, a.servidor AS servidor, d.name AS departamento_name, s.name AS servidor_name 
+        FROM aplicacao a 
+        LEFT JOIN departamento d ON a.departamento = d.id 
+        LEFT JOIN aplicacao_servidor aps ON a.id = aps.aplicacao_id 
+        LEFT JOIN servidor s ON aps.servidor_id = s.id 
+        WHERE a.departamento = $1
+        ORDER BY a.id DESC
+      `;
+      params = [userDepartamento];
+    } else {
+      // Se o perfil não for reconhecido
+      client.release();
+      return res
+        .status(403)
+        .json({ error: "Perfil do usuário não autorizado." });
+    }
+
+    const result = await client.query(query, params);
     client.release();
     res.status(200).json(result.rows);
   } catch (error) {
@@ -116,7 +153,7 @@ async function updateAplicacao(req, res) {
 
     // Verificar se o nome já existe para outra aplicação
     let query =
-      "SELECT COUNT(*) as count FROM Aplicacao WHERE name = $1 AND id != $2";
+      "SELECT COUNT(*) as count FROM aplicacao WHERE name = $1 AND id != $2";
     let result = await client.query(query, [name, id]);
 
     if (result.rows[0].count > 0) {
@@ -127,7 +164,7 @@ async function updateAplicacao(req, res) {
 
     // Atualizar a aplicação
     query = `
-      UPDATE Aplicacao
+      UPDATE aplicacao
       SET name = $1,
           descricao = $2,
           departamento = $3,
@@ -139,7 +176,7 @@ async function updateAplicacao(req, res) {
       name,
       descricao,
       departamento,
-      servidor,
+      servidor || null, // Garantir que o servidor seja tratado como null se não fornecido
       id,
     ]);
 
@@ -147,20 +184,21 @@ async function updateAplicacao(req, res) {
       return res.status(404).json({ error: "Aplicação não encontrada." });
     }
 
-    // Atualizar a relação entre aplicação e servidor na tabela aplicacao_servidor
+    // Atualizar a relação entre aplicação e servidores na tabela aplicacao_servidor
+    // Remover todas as associações existentes
     query = `
       DELETE FROM aplicacao_servidor WHERE aplicacao_id = $1;
     `;
     await client.query(query, [id]);
 
-    if (servidor && servidor.length > 0) {
+    // Adicionar as novas associações
+    if (servidor) {
       query = `
         INSERT INTO aplicacao_servidor (aplicacao_id, servidor_id)
         VALUES ($1, $2)
+        ON CONFLICT (aplicacao_id, servidor_id) DO NOTHING
       `;
-      for (const servidorId of servidor) {
-        await client.query(query, [id, servidorId]);
-      }
+      await client.query(query, [id, servidor]);
     }
 
     res.status(200).send("Aplicação atualizada com sucesso.");

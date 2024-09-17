@@ -90,7 +90,7 @@ export const LinkClient: React.FC<LinkClientProps> = () => {
           ) : (
             <Plus className="mr-2 h-4 w-4" />
           )}
-          {loading ? 'Adding...' : 'Adicionar Aplicação'}
+          {loading ? 'A adicionar...' : 'Adicionar'}
         </Button>
       </div>
       <Separator className="mt-24" />

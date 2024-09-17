@@ -5,12 +5,6 @@ import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL_API ?? '';
-const basicAuthUser = process.env.NEXT_PUBLIC_BASIC_AUTH_USER ?? '';
-const basicAuthPass = process.env.NEXT_PUBLIC_BASIC_AUTH_PASS ?? '';
-
-const authHeader =
-  'Basic ' +
-  Buffer.from(`${basicAuthUser}:${basicAuthPass}`).toString('base64');
 
 const authenticateUser = async (
   username: string,
@@ -22,7 +16,6 @@ const authenticateUser = async (
       { username, password },
       {
         headers: {
-          Authorization: authHeader,
           'Content-Type': 'application/json'
         }
       }
@@ -38,7 +31,8 @@ const authenticateUser = async (
         id: response.data.user.id,
         name: response.data.user.name,
         email: response.data.user.email,
-        username: response.data.user.username
+        username: response.data.user.username,
+        accessToken: response.data.token // Adiciona o token JWT à resposta
       };
     } else {
       toast({
@@ -84,11 +78,11 @@ const authConfig: NextAuthConfig = {
     })
   ],
   pages: {
-    signIn: '/'
+    signIn: '/' // Página de login personalizada
   },
   session: {
-    maxAge: 60 * 60, 
-    updateAge: 30 * 60 
+    maxAge: 60 * 60, // 1 hora, igual ao tempo de sessão do backend
+    updateAge: 30 * 60 // 30 minutos, igual ao tempo de atualização da sessão
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -97,9 +91,12 @@ const authConfig: NextAuthConfig = {
         token.name = user.name;
         token.email = user.email;
         token.username = user.username;
+        token.accessToken = user.accessToken; // Adiciona o token JWT ao token do NextAuth
       }
       return token;
-    },
+      
+    }, 
+   
     async session({ session, token }) {
       session.user = {
         ...session.user,
@@ -108,6 +105,7 @@ const authConfig: NextAuthConfig = {
         email: token.email as string,
         username: token.username as string
       };
+      session.accessToken = token.accessToken as string; // Adiciona o token JWT à sessão
       return session;
     }
   }

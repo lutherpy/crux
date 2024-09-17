@@ -300,7 +300,7 @@ export default function CreateUserForm() {
             )}
           />
           <Button type="submit" disabled={loading}>
-            {loading ? 'Adicionando...' : 'Adicionar Utilizador'}
+            {loading ? 'Adicionando...' : 'Adicionar'}
           </Button>
 
           <Link href="/dashboard/apps" passHref>

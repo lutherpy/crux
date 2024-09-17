@@ -42,7 +42,8 @@ async function loginUser(req, res) {
         username: user.username,
         email: user.email,
         name: user.name,
-        profile_id: user.profile_id,
+        departamento: user.departamento,
+        perfil: user.perfil,
       },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }

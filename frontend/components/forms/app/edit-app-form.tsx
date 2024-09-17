@@ -64,7 +64,7 @@ export default function EditAppForm() {
       const servidorService = new ServidorService();
       const servidoresList = await servidorService.listarTodos(); // Presumindo que esse método já funciona
       setServidores(servidoresList);
-      console.log('Servidores:', servidoresList); // Adicionado para depuração
+      //console.log('Servidores:', servidoresList); // Adicionado para depuração
     } catch (err) {
       toast({
         title: 'Erro ao carregar servidores.',
@@ -84,7 +84,7 @@ export default function EditAppForm() {
       const departamentoservice = new DepartamentoService();
       const departamentosList = await departamentoservice.listarTodos(); // Presumindo que esse método já funciona
       setDepartamentos(departamentosList);
-      console.log('Departamentos:', departamentosList); // Adicionado para depuração
+      //console.log('Departamentos:', departamentosList); // Adicionado para depuração
     } catch (err) {
       toast({
         title: 'Erro ao carregar departamentos.',
@@ -280,7 +280,7 @@ export default function EditAppForm() {
             )}
           />
           <Button type="submit" disabled={loading}>
-            {loading ? 'Adicionando...' : 'Adicionar Aplicação'}
+            {loading ? 'A actualizar...' : 'Actualizar'}
           </Button>
           <Link href="/dashboard/apps" passHref>
             <Button variant={'outline'} disabled={loading} className="ml-5">

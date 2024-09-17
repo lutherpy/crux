@@ -224,7 +224,7 @@ export default function CreateLinkForm() {
           />
 
           <Button type="submit" disabled={loading}>
-            {loading ? 'Adicionando...' : 'Adicionar Aplicação'}
+            {loading ? 'Adicionando...' : 'Adicionar'}
           </Button>
           <Link href="/dashboard/link" passHref>
             <Button variant={'outline'} disabled={loading} className="ml-5">

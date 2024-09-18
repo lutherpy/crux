@@ -104,7 +104,7 @@ export default function EditAppForm() {
         setLoading(true);
         const appService = new AppService();
         const response = await appService.buscarPorId(Number(appId));
-        const app = response;
+        const app = response.data;
         form.reset({
           name: app.name,
           descricao: app.descricao,

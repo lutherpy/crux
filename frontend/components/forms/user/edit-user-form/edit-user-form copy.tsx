@@ -23,60 +23,75 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { AppService } from '@/service/AppService';
-import { toast } from '@/components/ui/use-toast';
+import { UserService } from '@/service/UserService';
 import { DepartamentoService } from '@/service/DepartamentoService';
-import { ServidorService } from '@/service/ServidorService';
-import { Servidor } from '@/types/servidor';
+import { ProfileService } from '@/service/ProfileService';
 import { Departamento } from '@/types/departamento';
-import { Textarea } from '@/components/ui/textarea';
+import { Perfil } from '@/types/perfil';
+import { toast } from '@/components/ui/use-toast';
+
 import Link from 'next/link';
 
 const FormSchema = z.object({
-  name: z.string().min(2, { message: 'Name is required.' }),
-  descricao: z.string().optional(),
-  departamento: z.string().min(1, { message: 'Departamento é obrigatório.' }),
-  servidor: z.string().min(1, { message: 'Servidor is required.' }) // servidor precisa ser selecionado
+  name: z.string().min(1, { message: 'Name is required.' }),
+  username: z
+    .string()
+    .min(2, { message: 'Username must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Invalid email address.' }),
+  password: z.string().optional(),
+  perfil: z.string().min(1, { message: 'Profile is required.' }),
+  departamento: z.string().min(1, { message: 'Departamento is required.' })
 });
 
 type FormValues = z.infer<typeof FormSchema>;
 
-export default function EditAppForm() {
+export default function EditUserForm() {
   const router = useRouter();
-  const { appId } = useParams();
+  const { userId } = useParams();
   const [loading, setLoading] = useState(false);
-  const [servidores, setServidores] = useState<Servidor[]>([]);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
-
+  const [perfis, setPerfis] = useState<Perfil[]>([]);
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: '',
-      descricao: '',
-      departamento: '',
-      servidor: ''
+      username: '',
+      email: '',
+      perfil: '',
+      departamento: ''
     }
   });
 
-  // Função para buscar servidores
-  const fetchServidores = async () => {
-    try {
-      const servidorService = new ServidorService();
-      const servidoresList = await servidorService.listarTodos(); // Presumindo que esse método já funciona
-      setServidores(servidoresList);
-      //console.log('Servidores:', servidoresList); // Adicionado para depuração
-    } catch (err) {
-      toast({
-        title: 'Erro ao carregar servidores.',
-        description: 'Não foi possível carregar a lista de servidores.'
-      });
-    }
-  };
-
-  // Executa a busca ao montar o componente
   useEffect(() => {
-    fetchServidores();
-  }, []);
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const userService = new UserService();
+        const response = await userService.buscarPorId(Number(userId));
+        const user = response.data;
+        form.reset({
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          perfil: user.perfil,
+          departamento: user.departamento
+        });
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'An unknown error occurred.';
+        toast({
+          title: 'Failed to load user data.',
+          description: errorMessage
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchUser();
+    }
+  }, [userId, form]);
 
   // Função para buscar departamentos
   const fetchDepartamentos = async () => {
@@ -84,7 +99,7 @@ export default function EditAppForm() {
       const departamentoservice = new DepartamentoService();
       const departamentosList = await departamentoservice.listarTodos(); // Presumindo que esse método já funciona
       setDepartamentos(departamentosList);
-      //console.log('Departamentos:', departamentosList); // Adicionado para depuração
+      console.log('Departamentos:', departamentosList); // Adicionado para depuração
     } catch (err) {
       toast({
         title: 'Erro ao carregar departamentos.',
@@ -98,62 +113,51 @@ export default function EditAppForm() {
     fetchDepartamentos();
   }, []);
 
-  useEffect(() => {
-    const fetchApp = async () => {
-      try {
-        setLoading(true);
-        const appService = new AppService();
-        const response = await appService.buscarPorId(Number(appId));
-        const app = response;
-        form.reset({
-          name: app.name,
-          descricao: app.descricao,
-          departamento: app.departamento,
-          servidor: app.servidor
-        });
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'An unknown error occurred.';
-        toast({
-          title: 'Failed to load app data.',
-          description: errorMessage
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (appId) {
-      fetchApp();
+  const fetchPerfis = async () => {
+    try {
+      const profileService = new ProfileService();
+      const profilesList = await profileService.listarTodos(); // Presumindo que esse método já funciona
+      setPerfis(profilesList);
+      console.log('Departamentos:', profilesList); // Adicionado para depuração
+    } catch (err) {
+      toast({
+        title: 'Erro ao carregar perfis.',
+        description: 'Não foi possível carregar a lista de perfis.'
+      });
     }
-  }, [appId, form]);
+  };
+
+  // Executa a busca ao montar o componente
+  useEffect(() => {
+    fetchPerfis();
+  }, []);
 
   const onSubmit = async (data: FormValues) => {
     try {
       setLoading(true);
-      const appService = new AppService();
+      const userService = new UserService();
 
-      if (appId) {
-        const updatedApp = { ...data, id: Number(appId) };
-        await appService.alterar(updatedApp);
+      if (userId) {
+        const updatedUser = { ...data, id: Number(userId) };
+        await userService.alterar(updatedUser);
         toast({
-          title: 'App updated successfully!',
-          description: 'The app has been updated successfully.'
+          title: 'User updated successfully!',
+          description: 'The user has been updated successfully.'
         });
       } else {
-        await appService.inserir(data);
+        await userService.inserir(data);
         toast({
-          title: 'App added successfully!',
-          description: 'The app has been created successfully.'
+          title: 'User added successfully!',
+          description: 'The user has been created successfully.'
         });
       }
 
-      router.push('/dashboard/apps');
+      router.push('/dashboard/user');
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'An unknown error occurred.';
       toast({
-        title: appId ? 'Failed to update app.' : 'Failed to add app.',
+        title: userId ? 'Failed to update user.' : 'Failed to add user.',
         description: (
           <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
             <code className="text-white">Error: {errorMessage}</code>
@@ -167,7 +171,7 @@ export default function EditAppForm() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold">Editar Aplicação</h1>
+      <h1 className="mb-4 text-2xl font-bold">Editar Utilizador</h1>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -180,8 +184,35 @@ export default function EditAppForm() {
               <FormItem>
                 <FormLabel>Nome</FormLabel>
                 <FormControl>
+                  <Input placeholder="John Doe" {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input placeholder="john_doe" {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
                   <Input
-                    placeholder="Nome da aplicação"
+                    placeholder="john@example.com"
+                    type="email"
                     {...field}
                     disabled={loading}
                   />
@@ -192,18 +223,22 @@ export default function EditAppForm() {
           />
           <FormField
             control={form.control}
-            name="descricao"
+            name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Descrição</FormLabel>
+                <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Textarea className="resize-none" {...field} />
+                  <Input
+                    placeholder="••••••"
+                    type="password"
+                    {...field}
+                    disabled
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="departamento"
@@ -241,13 +276,12 @@ export default function EditAppForm() {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
-            name="servidor"
+            name="perfil"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Servidor</FormLabel>
+                <FormLabel>Perfil</FormLabel>
                 <FormControl>
                   <Select
                     value={field.value}
@@ -255,21 +289,21 @@ export default function EditAppForm() {
                     disabled={loading}
                   >
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Selecione o servidor" />
+                      <SelectValue placeholder="Selecione o perfil" />
                     </SelectTrigger>
                     <SelectContent>
-                      {servidores.length > 0 ? (
-                        servidores.map((servidor) => (
+                      {perfis.length > 0 ? (
+                        perfis.map((perfil) => (
                           <SelectItem
-                            key={servidor.servidor_id}
-                            value={servidor.servidor_id.toString()}
+                            key={perfil.id}
+                            value={perfil.id.toString()}
                           >
-                            {servidor.servidor_name}
+                            {perfil.name}
                           </SelectItem>
                         ))
                       ) : (
                         <SelectItem disabled value="">
-                          Nenhum servidor encontrado
+                          Nenhum perfil encontrado
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -280,9 +314,10 @@ export default function EditAppForm() {
             )}
           />
           <Button type="submit" disabled={loading}>
-            {loading ? 'A actualizar...' : 'Actualizar'}
+            {loading ? 'Adicionando...' : 'Adicionar Utilizador'}
           </Button>
-          <Link href="/dashboard/apps" passHref>
+
+          <Link href="/dashboard/user" passHref>
             <Button variant={'outline'} disabled={loading} className="ml-5">
               Cancelar
             </Button>

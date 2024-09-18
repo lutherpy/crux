@@ -33,7 +33,7 @@ const FormSchema = z.object({
   name: z.string().min(2, { message: 'Name is required.' }),
   servico: z.string().optional(),
   link: z.string().min(1, { message: 'Link é obrigatório.' }),
-  departamento: z.string().optional() // servidor precisa ser selecionado
+  departamento: z.string().optional() // Departamento precisa ser selecionado
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -60,11 +60,10 @@ export default function EditLinkForm() {
       const depsService = new Departamento_Geral_Service();
       const depsList = await depsService.listarTodos(); // Presumindo que esse método já funciona
       setDeps(depsList);
-      console.log('Deps:', depsList); // Adicionado para depuração
     } catch (err) {
       toast({
-        title: 'Erro ao carregar servidores.',
-        description: 'Não foi possível carregar a lista de servidores.'
+        title: 'Erro ao carregar departamentos.',
+        description: 'Não foi possível carregar a lista de departamentos.'
       });
     }
   };
@@ -80,12 +79,12 @@ export default function EditLinkForm() {
         setLoading(true);
         const linkService = new LinkService();
         const response = await linkService.buscarPorId(Number(linkId));
-        const link = response.data;
+        const link = response; // Verifique se a estrutura do retorno é correta
         form.reset({
           name: link.name,
-          servico: link.servico,
+          servico: link.servico || '',
           link: link.link,
-          departamento: link.departamento
+          departamento: link.departamento?.toString() || '' // Converta para string
         });
       } catch (err) {
         const errorMessage =
@@ -157,7 +156,7 @@ export default function EditLinkForm() {
                 <FormLabel>Nome</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Nome da aplicação"
+                    placeholder="Nome do link"
                     {...field}
                     disabled={loading}
                   />
@@ -175,7 +174,7 @@ export default function EditLinkForm() {
                 <FormLabel>Link</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="https://endereco-da-aplicacao.cmc.ao"
+                    placeholder="https://endereco-do-link.com"
                     {...field}
                     disabled={loading}
                   />
@@ -193,7 +192,7 @@ export default function EditLinkForm() {
                 <FormLabel>Serviço</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Power Bi, MS Forms, etc"
+                    placeholder="Nome do serviço"
                     {...field}
                     disabled={loading}
                   />
@@ -212,7 +211,7 @@ export default function EditLinkForm() {
                 <FormControl>
                   <Select
                     value={field.value}
-                    onValueChange={(value) => field.onChange(value)}
+                    onValueChange={field.onChange}
                     disabled={loading}
                   >
                     <SelectTrigger className="w-[180px]">
@@ -242,7 +241,7 @@ export default function EditLinkForm() {
           />
 
           <Button type="submit" disabled={loading}>
-            {loading ? 'A actualizar...' : 'Actualizar'}
+            {loading ? 'A atualizar...' : 'Atualizar'}
           </Button>
           <Link href="/dashboard/link" passHref>
             <Button variant={'outline'} disabled={loading} className="ml-5">

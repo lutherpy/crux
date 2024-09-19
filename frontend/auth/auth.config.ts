@@ -1,8 +1,21 @@
+// auth.config.ts
 import { NextAuthConfig, User } from 'next-auth';
 import CredentialProvider from 'next-auth/providers/credentials';
 import GithubProvider from 'next-auth/providers/github';
 import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
+
+declare module 'next-auth' {
+  interface User {
+    accessToken?: string;
+   // username?: string; // Adiciona a propriedade `accessToken`
+  }
+
+  interface Session {
+    user: User;
+    accessToken?: string; // Adiciona a propriedade `accessToken` à sessão
+  }
+}
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL_API ?? '';
 
@@ -77,6 +90,8 @@ const authConfig: NextAuthConfig = {
       }
     })
   ],
+  secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   pages: {
     signIn: '/' // Página de login personalizada
   },
@@ -94,9 +109,7 @@ const authConfig: NextAuthConfig = {
         token.accessToken = user.accessToken; // Adiciona o token JWT ao token do NextAuth
       }
       return token;
-      
-    }, 
-   
+    },
     async session({ session, token }) {
       session.user = {
         ...session.user,
@@ -112,3 +125,4 @@ const authConfig: NextAuthConfig = {
 };
 
 export default authConfig;
+

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { auth } from '@/auth/auth';
-import { BlockLp } from '@/components/custom/block-lp';
+import SessionTimer from '@/components/SessionTimer';
 
 export default async function DashboardBlockLP() {
   const session = await auth();
@@ -26,6 +26,9 @@ export default async function DashboardBlockLP() {
           <h2 className="text-2xl font-bold tracking-tight">
             Olá {session?.user?.name}! Bem-vindo 👋
           </h2>
+          <div className="hidden items-center space-x-2 md:flex">
+            <SessionTimer /> {/* Adiciona o timer de sessão */}
+          </div>
           <div className="hidden items-center space-x-2 md:flex">
             <CalendarDateRangePicker />
             <Button>Download</Button>

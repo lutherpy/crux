@@ -14,7 +14,7 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useSession } from 'next-auth/react';
 
 interface UserColumnsProps {
   onDelete: (userId: number) => void;
@@ -24,77 +24,86 @@ interface UserColumnsProps {
 export const columns = ({
   onDelete,
   onEdit
-}: UserColumnsProps): ColumnDef<User>[] => [
-  {
-    accessorKey: 'id',
-    header: 'ID'
-  },
-  {
-    accessorKey: 'name',
-    header: 'Name'
-  },
-  {
-    accessorKey: 'email',
-    header: 'Email'
-  },
-  {
-    accessorKey: 'username',
-    header: 'Username'
-  },
-  {
-    accessorKey: 'departamento',
-    header: 'Divisão'
-  },
-  {
-    accessorKey: 'perfil',
-    header: 'Perfil'
-  },
-  {
-    id: 'actions',
-    header: 'Actions',
-    cell: ({ row }) => {
-      const user = row.original;
-      const [open, setOpen] = useState(false);
+}: UserColumnsProps): ColumnDef<User>[] => {
+  const { data: session } = useSession();
+  const userProfile = session?.user?.perfil
+    ? parseInt(session.user.perfil, 10)
+    : null; // Faz o parse para número
 
-      const handleDelete = () => {
-        setOpen(false);
-        onDelete(user.id);
-      };
+  return [
+    {
+      accessorKey: 'id',
+      header: 'ID'
+    },
+    {
+      accessorKey: 'name',
+      header: 'Name'
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email'
+    },
+    {
+      accessorKey: 'username',
+      header: 'Username'
+    },
+    {
+      accessorKey: 'departamento',
+      header: 'Divisão'
+    },
+    {
+      accessorKey: 'perfil',
+      header: 'Perfil'
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => {
+        const user = row.original;
+        const [open, setOpen] = useState(false);
 
-      return (
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => onEdit(user.id)}>
-            <Pencil className="h-4 w-4" />
-          </Button>
+        const handleDelete = () => {
+          setOpen(false);
+          onDelete(user.id);
+        };
 
-          <AlertDialog open={open} onOpenChange={setOpen}>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline">
-                <Trash className="h-4 w-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Are you sure you want to delete?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the
-                  user.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setOpen(false)}>
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      );
+        return (
+          <div className="flex space-x-2">
+            <Button variant="outline" onClick={() => onEdit(user.id)}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+
+            {userProfile === 1 && ( // Exibe o botão de deletar apenas para admins
+              <AlertDialog open={open} onOpenChange={setOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline">
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you sure you want to delete?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      the user.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setOpen(false)}>
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+        );
+      }
     }
-  }
-];
+  ];
+};

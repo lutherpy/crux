@@ -80,7 +80,7 @@ export default function CreateLinkForm() {
       await linkService.inserir(data);
       toast({
         title: 'Sucesso!',
-        description: 'A aplicação foi adicionada com sucesso.'
+        description: 'O Link foi adicionado com sucesso.'
       });
       router.push('/dashboard/link');
     } catch (err) {

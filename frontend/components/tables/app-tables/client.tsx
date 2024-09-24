@@ -46,8 +46,8 @@ export const AppClient: React.FC<AppClientProps> = () => {
       await appService.excluir(appId);
       setApps(apps.filter((app) => app.id !== appId));
       toast({
-        title: 'App deleted',
-        description: 'The app has been deleted successfully.'
+        title: 'Aplicação eliminada.',
+        description: 'A Aplicação foi eliminada com sucesso.'
       });
     } catch (error) {
       toast({

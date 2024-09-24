@@ -46,8 +46,8 @@ export const LinkClient: React.FC<LinkClientProps> = () => {
       await linkService.excluir(linkId);
       setLinks(links.filter((link) => link.id !== linkId));
       toast({
-        title: 'Link deleted',
-        description: 'The link has been deleted successfully.'
+        title: 'Link eliminado',
+        description: 'O Link foi eliminado com sucesso.'
       });
     } catch (error) {
       toast({
@@ -78,7 +78,7 @@ export const LinkClient: React.FC<LinkClientProps> = () => {
       <div className="flex items-start justify-between">
         <Heading
           title={`Links (${links.length})`}
-          description="Manage links (Client side table functionalities.)"
+          description="Gestão de Links"
         />
         <Button
           className="text-xs md:text-sm"

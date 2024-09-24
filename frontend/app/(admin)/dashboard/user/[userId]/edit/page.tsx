@@ -1,9 +1,9 @@
-import EditUserForm from '@/components/forms/user/edit-user-form/edit-user-form';
+import EditPassForm from '@/components/forms/user/alterar-pass-form/edit-pass-form';
 
 export default function AddUserPage() {
   return (
     <div className="container">
-      <EditUserForm />
+      <EditPassForm />
     </div>
   );
 }

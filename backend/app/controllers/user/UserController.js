@@ -258,7 +258,8 @@ async function updateUser(req, res) {
 
 // UPDATE PASSWORD
 async function updatePassword(req, res) {
-  const { id, password } = req.body;
+  const { password } = req.body; // Remova o ID do corpo
+  const userId = req.user.id; // Supondo que o middleware de autenticação armazena o ID no req.user
 
   try {
     const client = await pool.connect();
@@ -268,7 +269,7 @@ async function updatePassword(req, res) {
 
     // Atualizar a senha do usuário
     const query = "UPDATE Utilizador SET password = $1 WHERE id = $2";
-    const result = await client.query(query, [hashedPassword, id]);
+    const result = await client.query(query, [hashedPassword, userId]); // Use o ID do usuário autenticado
 
     client.release();
 

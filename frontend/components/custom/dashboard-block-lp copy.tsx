@@ -1,9 +1,7 @@
-'use client'; // Certifica-se de que este é um Client Component
-
-import { useState, useEffect } from 'react';
 import { AreaGraph } from '@/components/charts/area-graph';
 import { BarGraph } from '@/components/charts/bar-graph';
 import { PieGraph } from '@/components/charts/pie-graph';
+import { CalendarDateRangePicker } from '@/components/date-range-picker';
 import PageContainer from '@/components/layout/page-container';
 import { RecentSales } from '@/components/recent-sales';
 import { Button } from '@/components/ui/button';
@@ -15,58 +13,26 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { auth } from '@/auth/auth';
 import SessionTimer from '@/components/SessionTimer';
 import { AppWindow, Link, User2, Workflow } from 'lucide-react';
-import { UserService } from '@/service/UserService';
-import { AppService } from '@/service/AppService'; // Importa o AppService
-import { LinkService } from '@/service/LinkService'; // Importa o LinkService
-import { DepartamentoService } from '@/service/DepartamentoService'; // Importa o DepartmentService
 
-export default function DashboardBlockLP() {
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [totalApplications, setTotalApplications] = useState(0);
-  const [totalLinks, setTotalLinks] = useState(0);
-  const [totalDepartments, setTotalDepartments] = useState(0); // Estado para os departamentos
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userService = new UserService();
-        const appService = new AppService();
-        const linkService = new LinkService(); // Instancia o LinkService
-        const departmentService = new DepartamentoService(); // Instancia o DepartmentService
-
-        // Chama o serviço de usuários
-        const users = await userService.listarTodos();
-        setTotalUsers(users.length);
-
-        // Chama o serviço de aplicações
-        const applications = await appService.listarTodos();
-        setTotalApplications(applications.length);
-
-        // Chama o serviço de links
-        const links = await linkService.listarTodos(); // Chamada para buscar links
-        setTotalLinks(links.length); // Atualiza o estado com o total de links
-
-        // Chama o serviço de departamentos
-        const departments = await departmentService.listarTodos(); // Chamada para buscar departamentos
-        setTotalDepartments(departments.length); // Atualiza o estado com o total de departamentos
-      } catch (error) {
-        console.error('Erro ao buscar dados:', error);
-      }
-    };
-
-    fetchData(); // Chama a função de busca dos dados
-  }, []);
+export default async function DashboardBlockLP() {
+  const session = await auth();
 
   return (
     <PageContainer scrollable={true}>
       <div className="space-y-2">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-2xl font-bold tracking-tight">
-            Olá, bem-vindo 👋
+            Olá {session?.user?.name}! Bem-vindo 👋
           </h2>
           <div className="hidden items-center space-x-2 md:flex">
+            {/* Adiciona o timer de sessão */}
+          </div>
+          <div className="hidden items-center space-x-2 md:flex">
+            {/* <CalendarDateRangePicker /> */}
+            {/* <Button>Download</Button> */}
             <SessionTimer />
           </div>
         </div>
@@ -85,7 +51,7 @@ export default function DashboardBlockLP() {
                   <User2 />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{totalUsers}</div>
+                  <div className="text-2xl font-bold">$45,231.89</div>
                 </CardContent>
               </Card>
               <Card className=" transform cursor-pointer transition-transform hover:scale-105">
@@ -96,7 +62,7 @@ export default function DashboardBlockLP() {
                   <AppWindow />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{totalApplications}</div>
+                  <div className="text-2xl font-bold">+2350</div>
                 </CardContent>
               </Card>
               <Card className=" transform cursor-pointer transition-transform hover:scale-105">
@@ -105,8 +71,7 @@ export default function DashboardBlockLP() {
                   <Link />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{totalLinks}</div>{' '}
-                  {/* Exibe o total de links */}
+                  <div className="text-2xl font-bold">+12,234</div>
                 </CardContent>
               </Card>
               <Card className=" transform cursor-pointer transition-transform hover:scale-105">
@@ -117,28 +82,31 @@ export default function DashboardBlockLP() {
                   <Workflow />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{totalDepartments}</div>{' '}
-                  {/* Exibe o total de departamentos */}
+                  <div className="text-2xl font-bold">+573</div>
                 </CardContent>
               </Card>
             </div>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
               <div className="col-span-4">
                 <BarGraph />
               </div>
               <Card className="col-span-4 md:col-span-3">
-                <PieGraph />
-              </Card>
-              {/* <Card className="col-span-4 md:col-span-3"></Card>{' '} */}
-              {/* <Card className="col-span-4 md:col-span-3">
                 <CardHeader>
                   <CardTitle>Recent Sales</CardTitle>
                   <CardDescription>
                     You made 265 sales this month.
                   </CardDescription>
                 </CardHeader>
-                <CardContent><RecentSales /></CardContent>
-              </Card> */}
+                <CardContent>
+                  <RecentSales />
+                </CardContent>
+              </Card>
+              <div className="col-span-4">
+                <AreaGraph />
+              </div>
+              <div className="col-span-4 md:col-span-3">
+                <PieGraph />
+              </div>
             </div>
           </TabsContent>
           <TabsContent value="Sample" className="space-y-4">

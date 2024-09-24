@@ -8,6 +8,7 @@ import { toast } from '@/components/ui/use-toast';
 declare module 'next-auth' {
   interface User {
     accessToken?: string;
+    perfil: string;
    // username?: string; // Adiciona a propriedade `accessToken`
   }
 
@@ -44,6 +45,7 @@ const authenticateUser = async (
         id: response.data.user.id,
         name: response.data.user.name,
         email: response.data.user.email,
+        perfil: response.data.user.perfil,
         username: response.data.user.username,
         accessToken: response.data.token // Adiciona o token JWT à resposta
       };
@@ -106,6 +108,7 @@ const authConfig: NextAuthConfig = {
         token.name = user.name;
         token.email = user.email;
         token.username = user.username;
+        token.perfil = user.perfil;
         token.accessToken = user.accessToken; // Adiciona o token JWT ao token do NextAuth
       }
       return token;
@@ -116,6 +119,7 @@ const authConfig: NextAuthConfig = {
         id: token.id as string,
         name: token.name as string,
         email: token.email as string,
+        perfil: token.perfil as string,
         username: token.username as string
       };
       session.accessToken = token.accessToken as string; // Adiciona o token JWT à sessão

@@ -18,8 +18,6 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
-import { AppService } from '@/service/AppService';
-
 const chartData = [
   { browser: 'chrome', visitors: 275, fill: 'var(--color-chrome)' },
   { browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
@@ -54,7 +52,7 @@ const chartConfig = {
   }
 } satisfies ChartConfig;
 
-export function PieGraph() {
+export function PieGraph2() {
   const totalVisitors = React.useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
   }, []);
@@ -104,7 +102,7 @@ export function PieGraph() {
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Aplicações
+                          Visitors
                         </tspan>
                       </text>
                     );

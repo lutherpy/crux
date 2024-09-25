@@ -5,7 +5,7 @@ async function getDepartamentosGerais(req, res) {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      "SELECT id, name FROM departamentos_gerais order by id desc"
+      "SELECT id, name FROM departamentos_gerais order by name asc"
     );
     client.release();
     res.status(200).json(result.rows);
@@ -21,7 +21,7 @@ async function getDepartamentoGeralById(req, res) {
 
   try {
     const client = await pool.connect();
-    const query = "SELECT  id, name FROM departamentos_gerais WHERE id = $1";
+    const query = "SELECT  id, name FROM departamentos_gerais WHERE id = $1 ";
     const result = await client.query(query, [departamentoId]);
 
     client.release();

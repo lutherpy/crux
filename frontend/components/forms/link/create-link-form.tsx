@@ -125,7 +125,7 @@ export default function CreateLinkForm() {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold">Criar Aplicação</h1>
+      <h1 className="mb-4 text-2xl font-bold">Criar Link</h1>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

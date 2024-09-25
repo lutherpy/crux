@@ -48,22 +48,22 @@ export default async function AuthenticationPage() {
           </svg>
           SIRIUS V2
         </div>
-        <div className="relative z-20 mt-auto">
+        <div className="relative z-10 mt-auto">
           <Image
             src="/login.png" // Caminho da sua imagem
             alt="Descrição da Imagem"
             layout="intrinsic" // Mantém a imagem no tamanho real
-            width={800} // Substitua com a largura real da imagem
-            height={800} // Substitua com a altura real da imagem
+            width={700} // Substitua com a largura real da imagem
+            height={700} // Substitua com a altura real da imagem
             className="rounded-lg" // Estilo opcional
             priority // Carrega a imagem com prioridade
           />
           <blockquote className="space-y-2">
-            <p className="text-lg">
+            <p className=" text-lg">
               O Sirius V2 é uma solução abrangente que centraliza e organiza as
               aplicações e links do Departamento.
             </p>
-            <footer className="text-sm">Sofia Davis</footer>
+            <footer className="text-sm">DSIC</footer>
           </blockquote>
         </div>
       </div>

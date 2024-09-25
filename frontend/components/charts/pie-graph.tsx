@@ -62,8 +62,8 @@ export function PieGraph() {
   return (
     <div>
       <CardHeader className="items-center pb-0">
-        <CardTitle>Aplicações</CardTitle>
-        <CardDescription>Total separado por Divisões</CardDescription>
+        <CardTitle>Visitantes</CardTitle>
+        <CardDescription>Total separado por Browsers</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer

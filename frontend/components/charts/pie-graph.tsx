@@ -104,7 +104,7 @@ export function PieGraph() {
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Aplicações
+                          Visitantes
                         </tspan>
                       </text>
                     );

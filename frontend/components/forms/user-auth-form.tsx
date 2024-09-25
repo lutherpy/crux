@@ -34,8 +34,8 @@ export default function UserAuthForm() {
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: 'lutherpy',
-      password: '123'
+      username: '',
+      password: ''
     }
   });
 

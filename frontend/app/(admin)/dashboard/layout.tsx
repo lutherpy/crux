@@ -5,8 +5,8 @@ import { Toaster } from '@/components/ui/toaster';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'CRUX',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'Portal SIRIUS V2',
+  description: 'Gestão de Aplicações e Links'
 };
 
 export default function DashboardLayout({

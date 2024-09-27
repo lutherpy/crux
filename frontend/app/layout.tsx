@@ -11,8 +11,8 @@ import type { Metadata } from 'next';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'CRUX',
-  description: 'Gestão de Aplicações'
+  title: 'Portal SIRIUS V2',
+  description: 'Gestão de Aplicações e Links'
 };
 
 export default async function RootLayout({

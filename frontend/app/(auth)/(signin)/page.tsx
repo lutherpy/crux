@@ -74,8 +74,7 @@ export default async function AuthenticationPage() {
               Fazer Login
             </h1>
             <p className="text-sm text-muted-foreground">
-              Insira as suas credenciais ou selecione outro método para fazer
-              Login.
+              Insira as suas credenciais para fazer Login.
             </p>
           </div>
           <UserAuthForm />

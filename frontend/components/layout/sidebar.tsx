@@ -12,7 +12,6 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import { LogoutConfirmDialog } from '../custom/logout-modal';
 import { signOut } from 'next-auth/react';
-import { Separator } from '../ui/separator';
 
 type SidebarProps = {
   className?: string;

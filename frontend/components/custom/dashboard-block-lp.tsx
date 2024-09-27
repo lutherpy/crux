@@ -73,7 +73,7 @@ export default function DashboardBlockLP() {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="Sample">Sample</TabsTrigger>
+            <TabsTrigger value="sobre">Sobre</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -141,8 +141,9 @@ export default function DashboardBlockLP() {
               </Card> */}
             </div>
           </TabsContent>
-          <TabsContent value="Sample" className="space-y-4">
-            Hello World!
+          <TabsContent value="sobre" className="space-y-4">
+            O Sirius V2 é uma solução abrangente que centraliza e organiza as
+            aplicações e links do Departamento.
           </TabsContent>
         </Tabs>
       </div>
